@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manufacturing Technology - Interactive Quiz</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --correct-bg: #dcfce7;
+            --correct-border: #22c55e;
+            --correct-text: #15803d;
+            --wrong-bg: #fee2e2;
+            --wrong-border: #ef4444;
+            --wrong-text: #b91c1c;
+            --border: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            padding: 20px 10px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 850px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding: 20px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+
+        .unit-nav-badge {
+            display: inline-block;
+            background: #e0e7ff;
+            color: var(--primary);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border: 1px solid var(--border);
+        }
+
+        .q-header {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+            color: #0f172a;
+        }
+
+        .options-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .option-label {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .option-label:hover {
+            border-color: var(--primary);
+            background: #f5f3ff;
+        }
+
+        .option-label input {
+            margin-right: 12px;
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary);
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            text-align: center;
+        }
+
+        .btn:hover {
+            background: var(--primary-hover);
+        }
+
+        /* Results Styles */
+        #results-container {
+            display: none;
+        }
+
+        .score-box {
+            text-align: center;
+            padding: 30px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border: 1px solid var(--border);
+        }
+
+        .emoji-display {
+            font-size: 5rem;
+            margin: 15px 0;
+            line-height: 1;
+        }
+
+        .score-text {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .score-status {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+
+        .review-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 5px solid var(--wrong-border);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .review-q-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .answer-meta {
+            font-size: 0.95rem;
+            margin-bottom: 10px;
+        }
+
+        .your-ans {
+            color: var(--wrong-text);
+            font-weight: 600;
+        }
+
+        .correct-ans {
+            color: var(--correct-text);
+            font-weight: 600;
+        }
+
+        .explanation-box {
+            background: #f8fafc;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            color: #334155;
+            border: 1px solid #e2e8f0;
+            white-space: pre-line;
+        }
+
+        .unit-score-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .unit-score-card {
+            background: #f1f5f9;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 0.85rem;
+        }
+
+        .unit-score-card strong {
+            display: block;
+            font-size: 1.1rem;
+            color: var(--primary);
+        }
+
+        @media (max-width: 600px) {
+            body { padding: 10px 5px; }
+            .card { padding: 16px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Manufacturing Technology Quiz</h1>
+        <div id="unit-badge" class="unit-nav-badge">Unit I: FOUNDRY TECHNOLOGY</div>
+    </header>
+
+    <!-- Quiz Section -->
+    <div id="quiz-container">
+        <form id="quiz-form">
+            <div id="questions-holder"></div>
+            <button type="button" id="next-btn" class="btn" onclick="processUnit()">Next Unit &rarr;</button>
+        </form>
+    </div>
+
+    <!-- Final Results Section -->
+    <div id="results-container">
+        <div class="score-box card">
+            <h2>Quiz Complete!</h2>
+            <div id="emoji-result" class="emoji-display">👼</div>
+            <div class="score-text" id="final-score">0 / 100</div>
+            <div class="score-status" id="performance-status">Outstanding Performance!</div>
+
+            <div class="unit-score-summary" id="unit-breakdown"></div>
+        </div>
+
+        <h3 style="margin-bottom: 15px; color: #334155;">Review Incorrect Answers & Explanations:</h3>
+        <div id="review-holder"></div>
+    </div>
+</div>
+
+<script>
+const quizData = [
+    // UNIT I
+    {
+        unit: "Unit – I: FOUNDRY TECHNOLOGY",
+        qIndex: 1,
+        question: "1. The most used material for patterns in sand casting is:",
+        options: ["a) Wax", "b) Metal", "c) Plastic", "d) Wood"],
+        correct: "d",
+        explanation: "a) Wax: Used for investment casting, not standard sand casting. / இது இன்வெஸ்ட்மென்ட் வார்ப்பில் பயன்படும், மணல் வார்ப்பில் அல்ல.\nb) Metal: Used mainly for mass production, not general use. / பெருமளவு உற்பத்திக்கு மட்டுமே அதிகம் பயன்படும்.\nc) Plastic: Less common and more specific than wood. / மரத்தை விட குறைவான பயன்பாடு கொண்டது."
+    },
+    {
+        unit: "Unit – I: FOUNDRY TECHNOLOGY",
+        qIndex: 2,
+        question: "2. A pattern is used in foundry for:",
+        options: ["a) Pouring molten metal", "b) Making mould cavity", "c) Cooling the casting", "d) Strengthening the sand"],
+        correct: "b",
+        explanation: "a) Pouring molten metal: This is done via runners/sprues. / இது ரன்னர் வழியாக ஊற்றப்படும்.\nc) Cooling the casting: Happens naturally or via chills. / தானாகவோ அல்லது சில்ஸ் மூலமோ நடக்கும்.\nd) Strengthening the sand: Done by adding binders. / பைண்டர்கள் மூலம் வலுப்படுத்தப்படும்."
+    },
+    {
+        unit: "Unit – I: FOUNDRY TECHNOLOGY",
+        qIndex: 3,
+        question: "3. The allowance given to a pattern for metal contraction during cooling is:",
+        options: ["a) Draft allowance", "b) Machining allowance", "c) Shrinkage allowance", "d) Rapping allowance"],
+        correct: "c",
+        explanation: "a) Draft allowance: Given for easy removal of the pattern. / பேட்டர்னை எளிதாக எடுக்க தரப்படும்.\nb) Machining allowance: Extra material for final machining. / இறுதி எந்திர வேலைக்காக விடப்படும்.\nd) Rapping allowance: Compensates for enlarging when shaking out. / பேட்டர்னை அசைத்து எடுக்கும்போது ஏற்படும் விரிவை ஈடுசெய்யும்."
+    },
+    {
+        unit: "Unit – I: FOUNDRY TECHNOLOGY",
+        qIndex: 4,
+        question: "4. The box used to hold the moulding sand is called:",
+        options: ["a) Hopper", "b) Cope and drag", "c) Furnace", "d) Ladle"],
+        correct: "b",
+        explanation: "a) Hopper: Used to store sand. / மணலை சேமிக்க பயன்படும்.\nc) Furnace: Used to melt metal. / உலோகத்தை உருக்க பயன்படும்.\nd) Ladle: Used to pour molten metal. / உருகிய உலோகத்தை ஊற்ற பயன்படும்."
+    },
+    {
+        unit: "Unit – I: FOUNDRY TECHNOLOGY",
+        qIndex: 5,
+        question: "5. The tool used for ramming sand in mould is:",
+        options: ["a) Rammer", "b) Strike-off bar", "c) Riddle", "d) Trowel"],
+        correct: "a",
+        explanation: "b) Strike-off bar: Used to level the sand surface. / மணலின் மேற்பரப்பை சமப்படுத்த பயன்படும்.\nc) Riddle: Used to sieve sand. / மணலை சலிக்க பயன்படும்.\nd) Trowel: Used for finishing and repairing the mould. / வார்ப்பை சீரமைக்க பயன்படும்."
+    },
+    {
+        unit: "Unit – I: FOUNDRY TECHNOLOGY",
+        qIndex: 6,
+        question: "6. The property of moulding sand that allows gases to pass through is:",
+        options: ["a) Cohesiveness", "b) Permeability", "c) Adhesiveness", "d) Collapsibility"],
+        correct: "b",
+        explanation: "a) Cohesiveness: Ability of sand particles to bind to each other. / மணல் துகள்கள் தங்களுக்குள் ஒட்டிக்கொள்ளும் தன்மை.\nc) Adhesiveness: Ability of sand to stick to the mould box. / மணல் பெட்டியுடன் ஒட்டிக்கொள்ளும் தன்மை.\nd) Collapsibility: Ability to break easily after casting. / வார்ப்புக்குப் பின் எளிதில் உடைந்தும் தன்மை."
+    },
+    {
+        unit: "Unit – I: FOUNDRY TECHNOLOGY",
+        qIndex: 7,
+        question: "7. The function of a core in moulding is to:",
+        options: ["a) Provide internal cavities", "b) Provide external shape", "c) Support the mould box", "d) Increase cooling rate"],
+        correct: "a",
+        explanation: "b) Provide external shape: This is the function of the pattern. / இது பேட்டர்னின் செயல்பாடு.\nc) Support the mould box: Done by pins/clamps. / பின்கள்/கிளாம்ப்கள் மூலம் செய்யப்படும்.\nd) Increase cooling rate: This is done by chills. / இது சில்ஸ் மூலம் செய்யப்படும்."
+    },
+    {
+        unit: "Unit – I: FOUNDRY TECHNOLOGY",
+        qIndex: 8,
+        question: "8. Non-ferrous metals such as aluminum are melted in:",
+        options: ["a) Cupola furnace", "b) Blast furnace", "c) Crucible furnace", "d) Open hearth furnace"],
+        correct: "c",
+        explanation: "a) Cupola furnace: Used for melting cast iron. / வார்ப்பிரும்பை உருக்கப் பயன்படும்.\nb) Blast furnace: Used to produce pig iron from ore. / இரும்புத் தாதுவிலிருந்து பிக் அயர்ன் தயாரிக்கப் பயன்படும்.\nd) Open hearth furnace: Used for steel making. / எஃகு தயாரிக்கப் பயன்படும்."
+    },
+    {
+        unit: "Unit – I: FOUNDRY TECHNOLOGY",
+        qIndex: 9,
+        question: "9. In a crucible furnace, metal is melted in:",
+        options: ["a) Crucible pot", "b) Hearth", "c) Lining", "d) Chamber"],
+        correct: "a",
+        explanation: "b) Hearth: Found in open-hearth or blast furnaces. / திறந்த உலைகளில் காணப்படும்.\nc) Lining: Refractory wall to protect the furnace. / உலையை பாதுகாக்கும் உட்சுவர்.\nd) Chamber: General space, not the melting container itself. / பொதுவான அறை, உருக்கும் பாத்திரம் அல்ல."
+    },
+    {
+        unit: "Unit – I: FOUNDRY TECHNOLOGY",
+        qIndex: 10,
+        question: "10. The energy source for an electric arc furnace is:",
+        options: ["a) Coal", "b) Oil", "c) Gas", "d) Electricity"],
+        correct: "d",
+        explanation: "a) Coal, b) Oil, c) Gas: These are fossil fuels, not used for electric arc. / இவை புதைபடிவ எரிபொருட்கள், மின்சார உலைக்கு பயன்படாது."
+    },
+    {
+        unit: "Unit – I: FOUNDRY TECHNOLOGY",
+        qIndex: 11,
+        question: "11. Casting is a process of:",
+        options: ["a) Forging metal", "b) Rolling metal sheets", "c) Pouring molten metal into a mould and solidifying", "d) Welding two parts"],
+        correct: "c",
+        explanation: "a) Forging metal: Shaping solid metal by force. / உலோகத்தை அடித்து வடிவம் மாற்றுதல்.\nb) Rolling metal sheets: Passing metal through rollers. / உருளைகள் மூலம் தட்டையாக்குதல்.\nd) Welding two parts: Joining metals by fusion. / உலோகங்களை உருக்கி இணைத்தல்."
+    },
+    {
+        unit: "Unit – I: FOUNDRY TECHNOLOGY",
+        qIndex: 12,
+        question: "12. Green sand in sand casting means:",
+        options: ["a) Sand with moisture", "b) Sand of green color", "c) Dry sand mixed with clay", "d) Sand with chemicals"],
+        correct: "a",
+        explanation: "b) Sand of green color: It does not refer to the actual color. / இது நிறத்தை குறிப்பதில்லை.\nc) Dry sand mixed with clay: This refers to dry sand casting before baking. / ஈரம் இல்லாத மணல்.\nd) Sand with chemicals: This is chemical resin sand. / இது ரசாயன மணல்."
+    },
+    {
+        unit: "Unit – I: FOUNDRY TECHNOLOGY",
+        qIndex: 13,
+        question: "13. In gravity die casting, molten metal enters the mould:",
+        options: ["a) By suction", "b) By pressure", "c) By centrifugal force", "d) By gravity alone"],
+        correct: "d",
+        explanation: "a) By suction: Used in vacuum casting. / வெற்றிட வார்ப்பில் பயன்படும்.\nb) By pressure: Used in pressure die casting. / அழுத்த டை வார்ப்பில் பயன்படும்.\nc) By centrifugal force: Used in centrifugal casting. / மையவிலக்கு வார்ப்பில் பயன்படும்."
+    },
+    {
+        unit: "Unit – I: FOUNDRY TECHNOLOGY",
+        qIndex: 14,
+        question: "14. Pressure die casting is used for:",
+        options: ["a) Large castings", "b) Open mould castings", "c) Small, precise castings", "d) Sand moulds"],
+        correct: "c",
+        explanation: "a) Large castings: Done via sand casting. / மணல் வார்ப்பில் செய்யப்படும்.\nb) Open mould castings: Very basic shapes only. / எளிமையான வடிவங்களுக்கு மட்டுமே.\nd) Sand moulds: Opposite of die (metal) casting. / இது டை வார்ப்பிற்கு எதிரானது."
+    },
+    {
+        unit: "Unit – I: FOUNDRY TECHNOLOGY",
+        qIndex: 15,
+        question: "15. In hot chamber die casting, the metal is:",
+        options: ["a) Melted inside the casting machine", "b) Brought from outside furnace", "c) Heated by centrifugal force", "d) Cooled quickly"],
+        correct: "a",
+        explanation: "b) Brought from outside furnace: This is cold chamber die casting. / இது கோல்ட் சேம்பர் முறையில் நடக்கும்.\nc) Heated by centrifugal force: Not a heating method. / இது வெப்பப்படுத்தும் முறை அல்ல.\nd) Cooled quickly: Happens in all die casting, not the defining trait here. / இது எல்லா டை வார்ப்பிலும் நடக்கும்."
+    },
+    {
+        unit: "Unit – I: FOUNDRY TECHNOLOGY",
+        qIndex: 16,
+        question: "16. The casting process best suited for hollow cylindrical parts is:",
+        options: ["a) Die casting", "b) Centrifugal casting", "c) Continuous casting", "d) Sand casting"],
+        correct: "b",
+        explanation: "a) Die casting: Better for complex solid parts. / திடமான பாகங்களுக்கு சிறந்தது.\nc) Continuous casting: Best for long continuous shapes (billets). / நீளமான உலோக உருளைகளுக்கு பயன்படும்.\nd) Sand casting: Needs a core for hollow shapes, less efficient. / உள்ளீடற்ற உருவங்களுக்கு கோர் (core) தேவை."
+    },
+    {
+        unit: "Unit – I: FOUNDRY TECHNOLOGY",
+        qIndex: 17,
+        question: "17. In centrifugal casting, the driving force is:",
+        options: ["a) Pressure", "b) Gravity", "c) Centrifugal force", "d) Suction"],
+        correct: "c",
+        explanation: "a) Pressure, b) Gravity, d) Suction: These apply to die, gravity, and vacuum casting respectively. / இவை முறையே அழுத்த, ஈர்ப்பு, மற்றும் வெற்றிட வார்ப்புகளில் பயன்படும்."
+    },
+    {
+        unit: "Unit – I: FOUNDRY TECHNOLOGY",
+        qIndex: 18,
+        question: "18. A major advantage of continuous casting is:",
+        options: ["a) Better machining allowance", "b) No mould needed", "c) No heat required", "d) Continuous production without ingots"],
+        correct: "d",
+        explanation: "a) Better machining allowance: Not the primary process advantage. / இது முக்கிய நன்மை அல்ல.\nb) No mould needed: A water-cooled copper mould is still used. / இதிலும் அச்சு தேவைப்படும்.\nc) No heat required: Molten metal still requires heat. / உருகிய உலோகத்திற்கு வெப்பம் தேவை."
+    },
+    {
+        unit: "Unit – I: FOUNDRY TECHNOLOGY",
+        qIndex: 19,
+        question: "19. Cold shut occurs when:",
+        options: ["a) Two streams of molten metal do not fuse properly", "b) Sand particles mix with metal", "c) Mould collapses", "d) Casting cracks during cooling"],
+        correct: "a",
+        explanation: "b) Sand particles mix: This is a sand inclusion defect. / இது மணல் குறைபாடு (sand inclusion).\nc) Mould collapses: This causes runouts or swells. / இதனால் வார்ப்பு சிதையும்.\nd) Casting cracks: This is a hot tear defect. / இது ஹாட் டியர் (hot tear) எனப்படும்."
+    },
+    {
+        unit: "Unit – I: FOUNDRY TECHNOLOGY",
+        qIndex: 20,
+        question: "20. The process of removing gates, risers, and excess metal is called:",
+        options: ["a) Fettling", "b) Pouring", "c) Ramming", "d) Moulding"],
+        correct: "a",
+        explanation: "b) Pouring: Filling the mould. / வார்ப்பில் ஊற்றுதல்.\nc) Ramming: Packing the sand. / மணலை இறுக்குதல்.\nd) Moulding: Creating the cavity. / அச்சு உருவாக்குதல்."
+    },
+
+    // UNIT II
+    {
+        unit: "Unit – II: WELDING TECHNOLOGY",
+        qIndex: 21,
+        question: "1. Welding is a process of:",
+        options: ["a) Joining two metals by mechanical fastening", "b) Joining two metals by fusion with or without filler", "c) Cutting metals into pieces", "d) Casting metals into moulds"],
+        correct: "b",
+        explanation: "a) Mechanical fastening: This is riveting/bolting. / இது போல்ட், நட் மூலம் இணைப்பது.\nc) Cutting metals: Machining/shearing. / உலோகங்களை வெட்டுவது.\nd) Casting metals: Pouring liquid into molds. / உலோகங்களை அச்சில் ஊற்றுவது."
+    },
+    {
+        unit: "Unit – II: WELDING TECHNOLOGY",
+        qIndex: 22,
+        question: "2. Arc welding uses heat generated by:",
+        options: ["a) Chemical reaction", "b) Gas combustion", "c) Electric arc between electrode and workpiece", "d) Frictional heat"],
+        correct: "c",
+        explanation: "a) Chemical reaction: Thermit welding. / தெர்மிட் வெல்டிங்.\nb) Gas combustion: Gas welding. / கேஸ் வெல்டிங்.\nd) Frictional heat: Friction welding. / உராய்வு வெல்டிங்."
+    },
+    {
+        unit: "Unit – II: WELDING TECHNOLOGY",
+        qIndex: 23,
+        question: "3. The power source used in arc welding can be:",
+        options: ["a) Transformer", "b) Battery", "c) Engine", "d) Inverter"],
+        correct: "a",
+        explanation: "b) Battery: Output too low for sustained industrial arc welding. / போதிய மின்சாரம் தராது.\nc) Engine: Drives a generator, not a direct source itself. / இது ஜெனரேட்டரை இயக்க மட்டுமே.\nd) Inverter: Standard fundamentals prioritize Transformer in curriculum. / பாடத்திட்டத்தின்படி டிரான்ஸ்பார்மர் என்பதே அடிப்படை விடை."
+    },
+    {
+        unit: "Unit – II: WELDING TECHNOLOGY",
+        qIndex: 24,
+        question: "4. The flux covering on electrodes in arc welding mainly provides:",
+        options: ["a) Mechanical strength", "b) Electrical insulation", "c) Cooling effect", "d) Arc stability and shielding gas"],
+        correct: "d",
+        explanation: "a) Mechanical strength: The metal core provides this. / உலோகக் கம்பி இதனைத் தரும்.\nb) Electrical insulation: Not its primary metallurgical purpose during welding. / இது முதன்மைப் பணி அல்ல.\nc) Cooling effect: Flux actually slows cooling by forming slag. / இது குளிர்ச்சி அடைவதை தாமதப்படுத்தும்."
+    },
+    {
+        unit: "Unit – II: WELDING TECHNOLOGY",
+        qIndex: 25,
+        question: "5. The most commonly used arc welding method in industries is:",
+        options: ["a) Carbon arc welding", "b) Metal arc welding", "c) Gas welding", "d) Friction welding"],
+        correct: "b",
+        explanation: "a) Carbon arc: Older, largely replaced method. / பழைய முறை, தற்போது அதிகம் பயன்படாது.\nc) Gas welding: Slower, less used for heavy industry. / வேகம் குறைவு, அதிக பயன்பாட்டில் இல்லை.\nd) Friction welding: Specialized application only. / குறிப்பிட்ட தேவைகளுக்கு மட்டுமே."
+    },
+    {
+        unit: "Unit – II: WELDING TECHNOLOGY",
+        qIndex: 26,
+        question: "6. In MIG welding, the term MIG stands for:",
+        options: ["a) Metal Inert Gas", "b) Metal Internal Gas", "c) Mechanical Inert Gas", "d) Molten Inert Graphite"],
+        correct: "a",
+        explanation: "b, c, d: These are fabricated incorrect terms. / இவை தவறான விரிவாக்கங்கள்."
+    },
+    {
+        unit: "Unit – II: WELDING TECHNOLOGY",
+        qIndex: 27,
+        question: "7. The shielding gas used in TIG welding is commonly:",
+        options: ["a) Oxygen", "b) Carbon dioxide", "c) Hydrogen", "d) Argon"],
+        correct: "d",
+        explanation: "a) Oxygen: Active gas, causes oxidation. / உலோகத்தை ஆக்சிஜனேற்றம் செய்யும்.\nb) Carbon dioxide: Active gas used in MAG, not standard TIG. / இது MAG வெல்டிங்கில் பயன்படும்.\nc) Hydrogen: Causes embrittlement. / உலோகத்தை உடையச் செய்யும்."
+    },
+    {
+        unit: "Unit – II: WELDING TECHNOLOGY",
+        qIndex: 28,
+        question: "8. TIG welding gives:",
+        options: ["a) Excellent quality, precision welds", "b) High welding speed, less control", "c) Poor weld quality", "d) Welding only for cast iron"],
+        correct: "a",
+        explanation: "b) High speed: MIG is faster than TIG. / TIG-ஐ விட MIG வேகமானது.\nc) Poor quality: TIG provides the highest quality. / TIG மிகச் சிறந்த தரம் கொண்டது.\nd) Only cast iron: Used for many metals like Al, SS. / பல உலோகங்களுக்குப் பயன்படும்."
+    },
+    {
+        unit: "Unit – II: WELDING TECHNOLOGY",
+        qIndex: 29,
+        question: "9. The reducing (carburizing) flame in gas welding is used for:",
+        options: ["a) Stainless steel", "b) Aluminum and nickel", "c) Cutting", "d) Cast iron"],
+        correct: "b",
+        explanation: "a) Stainless steel: Requires neutral flame. / நியூட்ரல் ஃபிளேம் தேவை.\nc) Cutting: Requires oxidizing flame. / ஆக்சிஜனேற்ற ஃபிளேம் தேவை.\nd) Cast iron: Welded with a neutral flame. / நியூட்ரல் ஃபிளேம் மூலம் இணைக்கப்படும்."
+    },
+    {
+        unit: "Unit – II: WELDING TECHNOLOGY",
+        qIndex: 30,
+        question: "10. The neutral flame in oxy-acetylene welding is best suited for:",
+        options: ["a) Cast iron and mild steel", "b) Brass and bronze", "c) Cutting operations", "d) Plastics"],
+        correct: "a",
+        explanation: "b) Brass and bronze: Often use oxidizing flame. / ஆக்சிஜனேற்ற ஃபிளேம் தேவை.\nc) Cutting operations: Uses oxygen jet (oxidizing). / ஆக்சிஜன் ஜெட் தேவை.\nd) Plastics: Welded using hot air/gas, not oxy-acetylene. / சூடான காற்று மூலம் இணைக்கப்படும்."
+    },
+    {
+        unit: "Unit – II: WELDING TECHNOLOGY",
+        qIndex: 31,
+        question: "11. Spot welding is preferred for sheet metals because:",
+        options: ["a) It requires no filler metal", "b) It needs less operator skill", "c) It gives localized joints quickly", "d) It uses less power"],
+        correct: "c",
+        explanation: "a, b, d: While true to varying extents, the primary functional reason for sheet metal manufacturing is rapid localized joining. / இவை ஓரளவுக்கு உண்மையாக இருந்தாலும், விரைவான இணைப்பு என்பதே முக்கிய காரணம்."
+    },
+    {
+        unit: "Unit – II: WELDING TECHNOLOGY",
+        qIndex: 32,
+        question: "12. Seam welding is widely used in fuel tanks and drums because:",
+        options: ["a) It requires no electrodes", "b) It saves more material", "c) It is cheaper than spot welding", "d) It provides leak-proof continuous welds"],
+        correct: "d",
+        explanation: "a) No electrodes: It uses wheel electrodes. / இது சக்கர வடிவிலான மின்முனைகளைப் பயன்படுத்துகிறது.\nb) Saves material: Not its main defining feature. / இது முக்கிய காரணம் அல்ல.\nc) Cheaper: Often more expensive equipment than spot welding. / ஸ்பாட் வெல்டிங்கை விட விலை அதிகம்."
+    },
+    {
+        unit: "Unit – II: WELDING TECHNOLOGY",
+        qIndex: 33,
+        question: "13. Soldering is weaker than brazing because:",
+        options: ["a) It uses cheaper electrodes", "b) Solder has low melting point and strength", "c) It requires high temperature", "d) It is performed in vacuum"],
+        correct: "b",
+        explanation: "a) Electrodes: Soldering uses an iron, not consumable electrodes like arc welding. / மின்முனைகள் பயன்படுவதில்லை.\nc) High temperature: Soldering is done at low temperatures (<450°C). / குறைந்த வெப்பநிலையில் நடக்கும்.\nd) Vacuum: Performed in standard air usually. / திறந்த வெளியிலேயே செய்யப்படும்."
+    },
+    {
+        unit: "Unit – II: WELDING TECHNOLOGY",
+        qIndex: 34,
+        question: "14. Destructive tests are avoided in production because:",
+        options: ["a) The specimen is damaged permanently", "b) They take more time", "c) They are inaccurate", "d) They use expensive machines"],
+        correct: "a",
+        explanation: "b, c, d: The primary reason is loss of the product; they are actually very accurate. / நேரமோ செலவோ அல்ல, பொருளை இழப்பதே முக்கிய காரணம்."
+    },
+    {
+        unit: "Unit – II: WELDING TECHNOLOGY",
+        qIndex: 35,
+        question: "15. Radiography is useful for detecting:",
+        options: ["a) External porosity only", "b) Hardness variation", "c) Internal defects like voids and blowholes", "d) Surface roughness"],
+        correct: "c",
+        explanation: "a) External porosity: Visual inspection is sufficient. / கண்களாலேயே இதைக் காண முடியும்.\nb) Hardness: Needs a hardness tester. / விறைப்புத்தன்மை சோதனை இயந்திரம் தேவை.\nd) Surface roughness: Measured by profilometers. / புறப்பரப்பு சோதனைக் கருவிகள் தேவை."
+    },
+    {
+        unit: "Unit – II: WELDING TECHNOLOGY",
+        qIndex: 36,
+        question: "16. Slag inclusion defects can be avoided by:",
+        options: ["a) Using smaller electrodes", "b) Cleaning each weld pass properly", "c) Applying more current", "d) Using less flux"],
+        correct: "b",
+        explanation: "a, c, d: These do not remove the slag physically left behind between passes. / இவை முந்தைய லேயரில் உள்ள ஸ்லாக்கை நீக்காது."
+    },
+    {
+        unit: "Unit – II: WELDING TECHNOLOGY",
+        qIndex: 37,
+        question: "17. Arc eye or eye injuries in welding occur mainly because:",
+        options: ["a) Dust enters the eye", "b) Sparks hit the face", "c) Helmet is too heavy", "d) UV rays from arc damage the retina"],
+        correct: "d",
+        explanation: "a, b, c: Sparks cause burns, but 'arc eye' specifically refers to UV radiation damage. / தீப்பொறிகள் காயத்தை ஏற்படுத்தும், ஆனால் 'ஆர்க் ஐ' என்பது புறஊதாக் கதிர்களால் வருவது."
+    },
+    {
+        unit: "Unit – II: WELDING TECHNOLOGY",
+        qIndex: 38,
+        question: "18. Heat in resistance welding is produced due to:",
+        options: ["a) Electrical resistance", "b) Chemical reaction", "c) Gas flame", "d) Mechanical pressure"],
+        correct: "a",
+        explanation: "b, c, d: No chemical, gas, or purely mechanical heat source is used; pressure only forces the metals together. / வெப்பம் மின் தடையால் மட்டுமே உருவாகிறது."
+    },
+    {
+        unit: "Unit – II: WELDING TECHNOLOGY",
+        qIndex: 39,
+        question: "19. Electrodes used in resistance welding are usually made of:",
+        options: ["a) Steel", "b) Copper alloys", "c) Aluminum", "d) Cast iron"],
+        correct: "b",
+        explanation: "a, c, d: Copper is used because it conducts electricity well without melting easily during the process. / தாமிரம் சிறந்த மின்கடத்தி என்பதால் பயன்படுகிறது."
+    },
+    {
+        unit: "Unit – II: WELDING TECHNOLOGY",
+        qIndex: 40,
+        question: "20. Hard facing is used to:",
+        options: ["a) Improve wear resistance", "b) Reduce hardness", "c) Reduce welding current", "d) Save electrodes"],
+        correct: "a",
+        explanation: "b) Reduce hardness: Hard facing explicitly increases it. / இது விறைப்புத்தன்மையை அதிகரிக்கும், குறைக்காது.\nc, d: Irrelevant to the metallurgical purpose of the coating. / வெல்டிங் கரண்ட் மற்றும் மின்முனையை மிச்சப்படுத்துவது இதன் நோக்கமல்ல."
+    },
+
+    // UNIT III
+    {
+        unit: "Unit – III: FORGING AND PRESS WORKING",
+        qIndex: 41,
+        question: "1. Hot working is generally done:",
+        options: ["a) Below recrystallization temperature", "b) At room temperature", "c) Below 0°C", "d) Above recrystallization temperature"],
+        correct: "d",
+        explanation: "a, b, c: These describe cold working conditions. / இவை கோல்ட் வொர்க்கிங் (cold working) முறையைக் குறிக்கும்."
+    },
+    {
+        unit: "Unit – III: FORGING AND PRESS WORKING",
+        qIndex: 42,
+        question: "2. Hot working improves:",
+        options: ["a) Machinability", "b) Thermal conductivity", "c) Ductility and toughness", "d) Electrical resistance"],
+        correct: "c",
+        explanation: "a) Machinability: Surface oxidation reduces machinability. / மேற்பரப்பு ஆக்சிஜனேற்றத்தால் எந்திர வேலை கடினமாகும்.\nb, d: Thermal and electrical properties are generally unaffected. / வெப்ப, மின் கடத்துதிறன் அதிகம் மாறாது."
+    },
+    {
+        unit: "Unit – III: FORGING AND PRESS WORKING",
+        qIndex: 43,
+        question: "3. The process of reducing thickness of metal by passing between rolls is:",
+        options: ["a) Forging", "b) Rolling", "c) Extrusion", "d) Drawing"],
+        correct: "b",
+        explanation: "a) Forging: Uses hammering/pressing. / சுத்தியலால் அடிப்பது.\nc) Extrusion: Pushing through a die. / டை (die) வழியாக தள்ளுவது.\nd) Drawing: Pulling through a die. / டை வழியாக இழுப்பது."
+    },
+    {
+        unit: "Unit – III: FORGING AND PRESS WORKING",
+        qIndex: 44,
+        question: "4. Hot working removes:",
+        options: ["a) Blow holes and porosity", "b) Surface cracks", "c) Rust only", "d) Scale only"],
+        correct: "a",
+        explanation: "b) Surface cracks: Hot working might actually open them further. / மேற்பரப்பு விரிசல்களை பெரிதாக்கலாம்.\nc, d: It creates scale rather than removing it. / இது ஸ்கேலை (scale) உருவாக்கும்."
+    },
+    {
+        unit: "Unit – III: FORGING AND PRESS WORKING",
+        qIndex: 45,
+        question: "5. The forging operation that increases length and reduces cross-section is:",
+        options: ["a) Drawing out", "b) Upsetting", "c) Piercing", "d) Bending"],
+        correct: "a",
+        explanation: "b) Upsetting: Decreases length, increases cross-section. / நீளத்தைக் குறைத்து, தடிமனை அதிகரிக்கும்.\nc) Piercing: Making holes. / துளை இடுவது.\nd) Bending: Changing the axis shape. / வளைப்பது."
+    },
+    {
+        unit: "Unit – III: FORGING AND PRESS WORKING",
+        qIndex: 46,
+        question: "6. Press forging gives better dimensional accuracy than hammer forging because:",
+        options: ["a) It uses dies with no impact load", "b) It requires less heating", "c) It applies slow, continuous pressure", "d) It uses lighter machines"],
+        correct: "c",
+        explanation: "a) No impact load: True, but the slow pressure is the active mechanism for full die filling. / மெதுவான அழுத்தமே சரியான வடிவத்திற்கு காரணம்.\nb, d: It actually requires massive, heavy machines. / இதற்கு பெரிய இயந்திரங்கள் தேவை."
+    },
+    {
+        unit: "Unit – III: FORGING AND PRESS WORKING",
+        qIndex: 47,
+        question: "7. Upset forging is widely used in bolt head making because:",
+        options: ["a) It increases diameter by shortening the length", "b) It reduces diameter by lengthening the section", "c) It improves toughness by slow cooling rate", "d) It enhances ductility without heat treatment"],
+        correct: "a",
+        explanation: "b) Reduces diameter: This is drawing out. / இது டிராயிங் அவுட் முறை.\nc, d: Not the primary geometric reason for making a bolt head. / வடிவம் மாற்றவே இது பயன்படுகிறது."
+    },
+    {
+        unit: "Unit – III: FORGING AND PRESS WORKING",
+        qIndex: 48,
+        question: "8. Press forging ensures better accuracy than hammer forging since:",
+        options: ["a) It applies slow continuous pressure on the work", "b) It strikes repeated high-speed blows on metal", "c) It heats the work uniformly in small furnaces", "d) It allows rolling action between two shaped dies"],
+        correct: "a",
+        explanation: "b) Strikes repeated blows: This is hammer forging. / இது சுத்தியல் ஃபோர்ஜிங்.\nc) Heats uniformly: Heating is a separate step. / வெப்பப்படுத்துவது தனி வேலை.\nd) Rolling action: This is roll forging. / இது ரோல் ஃபோர்ஜிங்."
+    },
+    {
+        unit: "Unit – III: FORGING AND PRESS WORKING",
+        qIndex: 49,
+        question: "9. Roll forging is mostly used for axles and rods because:",
+        options: ["a) The hammer blows distribute heat uniformly", "b) The dies are kept open to allow free expansion", "c) The operation is carried out at room temperature", "d) The shaped rolls gradually reduce cross-section"],
+        correct: "d",
+        explanation: "a) Hammer blows: No hammers used in roll forging. / இதில் சுத்தியல் பயன்படாது.\nc) Room temperature: Generally done hot. / பெரும்பாலும் அதிக வெப்பத்திலேயே நடக்கும்."
+    },
+    {
+        unit: "Unit – III: FORGING AND PRESS WORKING",
+        qIndex: 50,
+        question: "10. Forged components are stronger than castings due to:",
+        options: ["a) The melting process reduces internal porosity", "b) The cooling rate makes grains finer and harder", "c) The grain flow follows the overall shape of part", "d) The machining removes defects from the surface"],
+        correct: "c",
+        explanation: "a) Melting process: Forging is solid-state, not melting. / இது உருக்கும் முறை அல்ல.\nb, d: Grain orientation is the primary factor for superior structural strength. / சீரான துகள் ஓட்டமே (grain flow) அதிக வலிமைக்கு காரணம்."
+    },
+    {
+        unit: "Unit – III: FORGING AND PRESS WORKING",
+        qIndex: 51,
+        question: "11. A press in which power is transmitted by a crankshaft is called:",
+        options: ["a) Mechanical press", "b) Hydraulic press", "c) Pneumatic press", "d) Screw press"],
+        correct: "a",
+        explanation: "b) Hydraulic press: Uses fluid pressure. / திரவ அழுத்தத்தைப் பயன்படுத்துகிறது.\nc) Pneumatic press: Uses air pressure. / காற்று அழுத்தத்தைப் பயன்படுத்துகிறது.\nd) Screw press: Uses a threaded screw mechanism. / திருகு முறையைப் பயன்படுத்துகிறது."
+    },
+    {
+        unit: "Unit – III: FORGING AND PRESS WORKING",
+        qIndex: 52,
+        question: "12. The press working operation used to bend sheet into angles is:",
+        options: ["a) Curling", "b) Drawing", "c) Angle bending", "d) Shearing"],
+        correct: "c",
+        explanation: "a) Curling: Rolling the edge of the sheet. / ஓரங்களை உருட்டுதல்.\nb) Drawing: Forming a cup shape. / கோப்பை வடிவம் உருவாக்குதல்.\nd) Shearing: Cutting the sheet. / வெட்டுதல்."
+    },
+    {
+        unit: "Unit – III: FORGING AND PRESS WORKING",
+        qIndex: 53,
+        question: "13. The operation in which the edge of the sheet is rolled into a circle is known as:",
+        options: ["a) Notching", "b) Piercing", "c) Shaving", "d) Curling"],
+        correct: "d",
+        explanation: "a) Notching: Cutting shapes from the edge. / விளிம்புகளில் வெட்டுதல்.\nb) Piercing: Punching a hole. / துளை இடுதல்.\nc) Shaving: Removing small amounts for finish. / மெல்லிய அடுக்கை நீக்குதல்."
+    },
+    {
+        unit: "Unit – III: FORGING AND PRESS WORKING",
+        qIndex: 54,
+        question: "14. The operation in which a desired shape is completely cut from the sheet is called:",
+        options: ["a) Piercing", "b) Blanking", "c) Notching", "d) Trimming"],
+        correct: "b",
+        explanation: "a) Piercing: The cut-out is scrap, the sheet is the product. / துண்டிக்கப்பட்ட பகுதி குப்பை.\nc) Notching: Cutting only on the edge. / விளிம்பில் மட்டும் வெட்டுதல்.\nd) Trimming: Removing excess flash. / அதிகப்படியான பகுதியை நீக்குதல்."
+    },
+    {
+        unit: "Unit – III: FORGING AND PRESS WORKING",
+        qIndex: 55,
+        question: "15. The operation in which holes are punched without removing material is:",
+        options: ["a) Lancing", "b) Shaving", "c) Trimming", "d) Curling"],
+        correct: "a",
+        explanation: "b) Shaving: Removes material. / இது பொருளை நீக்கும்.\nc) Trimming: Removes material. / இது பொருளை நீக்கும்.\nd) Curling: Rolls the edge, does not punch. / இது ஓரத்தை மட்டுமே சுருட்டும்."
+    },
+    {
+        unit: "Unit – III: FORGING AND PRESS WORKING",
+        qIndex: 56,
+        question: "16. A mechanical press is more suitable for blanking because:",
+        options: ["a) It applies uniform pressure throughout stroke", "b) It reduces burrs on pierced holes", "c) It delivers high-speed strokes for cutting", "d) It requires less heating of the sheet"],
+        correct: "c",
+        explanation: "a) Uniform pressure: Hydraulic presses provide uniform pressure. / ஹைட்ராலிக் இயந்திரம் சீரான அழுத்தம் தரும்.\nb) Reduces burrs: Tool clearance defines this, not press type. / இது டை இடைவெளியைப் பொறுத்தது.\nd) Heating: Blanking is usually a cold process. / இது குளிர்ந்த நிலையில் நடக்கும்."
+    },
+    {
+        unit: "Unit – III: FORGING AND PRESS WORKING",
+        qIndex: 57,
+        question: "17. A hydraulic press is preferred for deep drawing because:",
+        options: ["a) It consumes less power in shearing", "b) It provides steady pressure during stroke", "c) It avoids spring back during bending", "d) It works at higher speed than mechanical press"],
+        correct: "b",
+        explanation: "a) Shearing: Mechanical is better for shearing. / மெக்கானிக்கல் இயந்திரம் இதற்கு சிறந்தது.\nc) Spring back: Overbending corrects this, not just steady pressure. / சற்று அதிகமாக வளைப்பதே இதற்கு தீர்வு.\nd) Higher speed: Mechanical presses are generally faster. / மெக்கானிக்கல் இயந்திரங்கள் வேகமானவை."
+    },
+    {
+        unit: "Unit – III: FORGING AND PRESS WORKING",
+        qIndex: 58,
+        question: "18. Angle bending is mainly used to:",
+        options: ["a) Form simple L or V shapes in sheets", "b) Avoid cracks during trimming", "c) Reduce thickness of sheet edges", "d) Remove burrs after piercing holes"],
+        correct: "a",
+        explanation: "b, d: It is a forming operation, not for avoiding cracks or removing burrs. / இது வடிவம் மாற்ற மட்டுமே பயன்படும்.\nc: Bending does not intentionally reduce thickness. / இது தடிமனைக் குறைக்காது."
+    },
+    {
+        unit: "Unit – III: FORGING AND PRESS WORKING",
+        qIndex: 59,
+        question: "19. Curling operation is carried out to:",
+        options: ["a) Improve tensile strength of sheets", "b) Eliminate sharp sheet edges by rolling", "c) Increase sheet hardness by pressing", "d) Avoid cracks during lancing process"],
+        correct: "b",
+        explanation: "a, c, d: It is purely to stiffen the edge and remove sharpness, not to alter metallurgical properties. / இது விளிம்பை பாதுகாப்பாக மாற்றுவதற்கே."
+    },
+    {
+        unit: "Unit – III: FORGING AND PRESS WORKING",
+        qIndex: 60,
+        question: "20. Blanking and piercing differ in that:",
+        options: ["a) In blanking, sheet edges remain scrap; in piercing, edges are product", "b) In blanking, dies are smaller than in piercing", "c) In blanking, more power is needed than piercing", "d) In blanking, the cut part is product; in piercing, the hole is product"],
+        correct: "d",
+        explanation: "a) Edges remain scrap: The sheet itself is the product in piercing. / பியர்சிங்கில் பெரிய அட்டையே முக்கியப் பொருள்.\nb, c: Power and size depend entirely on the specific job, not the process name. / இயந்திர சக்தி வேலையைப் பொறுத்தது."
+    },
+
+    // UNIT IV
+    {
+        unit: "Unit – IV: POWDER METALLURGY AND HEAT TREATMENT",
+        qIndex: 61,
+        question: "1. First step in powder metallurgy is:",
+        options: ["a) Sintering", "b) Compacting", "c) Powder production", "d) Sizing"],
+        correct: "c",
+        explanation: "a, b, d: These are subsequent steps that require the powder to exist first. / இவை பொடியை உருவாக்கிய பின் செய்யும் வேலைகள்."
+    },
+    {
+        unit: "Unit – IV: POWDER METALLURGY AND HEAT TREATMENT",
+        qIndex: 62,
+        question: "2. In powder metallurgy, which method is most widely used to produce metal powders?",
+        options: ["a) Chemical reduction", "b) Atomization", "c) Electrolysis", "d) Mechanical pulverization"],
+        correct: "b",
+        explanation: "a, c, d: While valid methods, atomization is the most dominant industrial method for melting metals. / அணுவாக்கம் முறையே பெருமளவில் பயன்படுகிறது."
+    },
+    {
+        unit: "Unit – IV: POWDER METALLURGY AND HEAT TREATMENT",
+        qIndex: 63,
+        question: "3. Purpose of sizing is:",
+        options: ["a) Powder production", "b) Improve dimensional accuracy", "c) Mixing particles", "d) Increase powder flow"],
+        correct: "b",
+        explanation: "a) Powder production: Sizing happens at the very end of the part creation. / பொருளை உருவாக்கிய பின் இறுதியாக நடக்கும்.\nc, d: Done during powder blending. / பொடியை கலக்கும்போதே நடக்கும்."
+    },
+    {
+        unit: "Unit – IV: POWDER METALLURGY AND HEAT TREATMENT",
+        qIndex: 64,
+        question: "4. In atomization, metal powder is produced by:",
+        options: ["a) Reducing metal oxides", "b) Spraying molten metal with gas or water jets", "c) Breaking solid metal", "d) Electroplating"],
+        correct: "b",
+        explanation: "a) Reducing oxides: This is chemical reduction. / இது வேதியியல் குறைப்பு முறை.\nc) Breaking solid metal: This is mechanical milling. / இது எந்திர முறை.\nd) Electroplating: This is electrolysis. / இது மின்பகுப்பு முறை."
+    },
+    {
+        unit: "Unit – IV: POWDER METALLURGY AND HEAT TREATMENT",
+        qIndex: 65,
+        question: "5. Which of the following produces the highest purity metal powders?",
+        options: ["a) Atomization", "b) Reduction", "c) Electrolysis", "d) Milling"],
+        correct: "c",
+        explanation: "a, b, d: Electrolysis separates metal at an atomic level, ensuring highest purity compared to mechanical/thermal methods. / மின்பகுப்பு முறையே அதிக தூய்மையைத் தரும்."
+    },
+    {
+        unit: "Unit – IV: POWDER METALLURGY AND HEAT TREATMENT",
+        qIndex: 66,
+        question: "6. Reduction process involves:",
+        options: ["a) Adding oxygen to oxides", "b) Reducing metal oxides using gases", "c) Melting and pouring", "d) Forging into shape"],
+        correct: "b",
+        explanation: "a) Adding oxygen: Reduction removes oxygen. / இம்முறை ஆக்சிஜனை நீக்கும்.\nc, d: Irrelevant to the chemical reduction process. / இவை வேதியியல் முறைக்கு தொடர்பில்லாதவை."
+    },
+    {
+        unit: "Unit – IV: POWDER METALLURGY AND HEAT TREATMENT",
+        qIndex: 67,
+        question: "7. The product obtained after compaction but before sintering is called:",
+        options: ["a) Finished part", "b) Sintered part", "c) Porous product", "d) Green compact"],
+        correct: "d",
+        explanation: "a, b: It is not finished or sintered yet. / இது முழுமையாக முடிந்த பொருள் அல்ல.\nc) Porous product: Too generic; 'green compact' is the precise term. / கிரீன் காம்பேக்ட் என்பதே சரியான சொல்."
+    },
+    {
+        unit: "Unit – IV: POWDER METALLURGY AND HEAT TREATMENT",
+        qIndex: 68,
+        question: "8. Which of the following is a typical use for powder metallurgy in the automotive industry?",
+        options: ["a) Brake rotors", "b) Crankshafts", "c) Pistons", "d) Bearings"],
+        correct: "d",
+        explanation: "a, b, c: Usually cast or forged due to immense size/stress requirements, whereas porous bronze bearings are perfect for PM. / பேரிங்குகள் மட்டுமே இம்முறையில் எளிதாக செய்ய ஏற்றவை."
+    },
+    {
+        unit: "Unit – IV: POWDER METALLURGY AND HEAT TREATMENT",
+        qIndex: 69,
+        question: "9. Self-lubricating parts are made by:",
+        options: ["a) Forging", "b) Extrusion", "c) Powder metallurgy with porosity", "d) Welding"],
+        correct: "c",
+        explanation: "a, b, d: These yield 100% solid, non-porous metals which cannot hold oil. / இம்முறைகளில் எண்ணெய் தேங்கும் நுண்துளைகள் உருவாகாது."
+    },
+    {
+        unit: "Unit – IV: POWDER METALLURGY AND HEAT TREATMENT",
+        qIndex: 70,
+        question: "10. Hot pressing combines:",
+        options: ["a) Melting and atomizing", "b) Compaction and sintering", "c) Electrolysis and infiltration", "d) Milling and forging"],
+        correct: "b",
+        explanation: "a, c, d: Hot pressing explicitly applies pressure and heat simultaneously to powder. / அழுத்தமும் வெப்பமும் ஒரே நேரத்தில் தரப்படும்."
+    },
+    {
+        unit: "Unit – IV: POWDER METALLURGY AND HEAT TREATMENT",
+        qIndex: 71,
+        question: "11. Heat treatment is done primarily to:",
+        options: ["a) Melt the metal", "b) Change chemical composition", "c) Improve mechanical properties", "d) Change color"],
+        correct: "c",
+        explanation: "a) Melt: Always done in solid state. / திண்ம நிலையிலேயே செய்யப்படும்.\nb) Composition: Bulk chemistry stays the same. / வேதியியல் அமைப்பு மாறாது.\nd) Color: Not a primary objective. / நிறம் மாற்றுவது நோக்கமல்ல."
+    },
+    {
+        unit: "Unit – IV: POWDER METALLURGY AND HEAT TREATMENT",
+        qIndex: 72,
+        question: "12. Which property is improved by heat treatment?",
+        options: ["a) Printability", "b) Transparency", "c) Hardness", "d) Gloss"],
+        correct: "c",
+        explanation: "a, b, d: These are irrelevant to standard metallurgical heat treatment of steel. / இவை உலோகங்களுக்கு பொருந்தாதவை."
+    },
+    {
+        unit: "Unit – IV: POWDER METALLURGY AND HEAT TREATMENT",
+        qIndex: 73,
+        question: "13. What is the primary purpose of the annealing process in heat treatment?",
+        options: ["a) To increase hardness", "b) To remove internal stresses and soften the material", "c) To improve wear resistance", "d) To refine grain structure and make the material brittle"],
+        correct: "b",
+        explanation: "a, c: Hardening/quenching does this. / இது ஹார்டனிங் முறையில் நடக்கும்.\nd) Normalizing refines grains; annealing makes it ductile, not brittle. / அனீலிங் உலோகத்தை மென்மையாக்கும், உடையச் செய்யாது."
+    },
+    {
+        unit: "Unit – IV: POWDER METALLURGY AND HEAT TREATMENT",
+        qIndex: 74,
+        question: "14. What effect does the normalizing process have on the grain structure of a material?",
+        options: ["a) It refines the grain structure", "b) It coarsens the grain structure", "c) It eliminates grain boundaries", "d) It causes no change in the grain structure"],
+        correct: "a",
+        explanation: "b) Coarsens: Annealing might coarsen; normalizing refines (makes uniform and fine). / அனீலிங் பெரிய துகளாக்கும், நார்மலைசிங் சீராக்கும்.\nc, d: Grains and boundaries always exist in solid metals and definitely change during heat treatment. / துகள்கள் எப்பொழுதும் இருக்கும், மாறும்."
+    },
+    {
+        unit: "Unit – IV: POWDER METALLURGY AND HEAT TREATMENT",
+        qIndex: 75,
+        question: "15. What is the purpose of tempering the steel?",
+        options: ["a) To reduce the brittleness", "b) To remove the ductility", "c) To increase the hardness", "d) To increase the brittleness"],
+        correct: "a",
+        explanation: "b) Remove ductility: Tempering actually restores some ductility. / இது மென்மைத்தன்மையை சற்று அதிகரிக்கும்.\nc) Increase hardness: Quenching does this. / குவென்சிங் விறைப்பை அதிகரிக்கும்.\nd) Increase brittleness: Tempering removes brittleness caused by quenching. / இது எளிதில் உடையும் தன்மையை குறைக்கும்."
+    },
+    {
+        unit: "Unit – IV: POWDER METALLURGY AND HEAT TREATMENT",
+        qIndex: 76,
+        question: "16. The iron-carbon equilibrium diagram shows relationship between:",
+        options: ["a) Oxygen and iron", "b) Iron and carbon", "c) Hydrogen and carbon", "d) Steel and aluminum"],
+        correct: "b",
+        explanation: "a, c, d: The diagram is explicitly called 'Iron-Carbon'. / இதன் பெயரிலேயே இரும்பு-கார்பன் என உள்ளது."
+    },
+    {
+        unit: "Unit – IV: POWDER METALLURGY AND HEAT TREATMENT",
+        qIndex: 77,
+        question: "17. Pearlite is a mixture of:",
+        options: ["a) Iron and carbon", "b) Austenite and ferrite", "c) Ferrite and cementite", "d) Graphite and carbide"],
+        correct: "c",
+        explanation: "a) Iron and carbon: Too vague. / துல்லியமான விடை அல்ல.\nb) Austenite and ferrite: This is a high-temperature mix. / இது அதிக வெப்பத்தில் தோன்றும்.\nd) Graphite and carbide: Found in cast iron, not typical pearlite lamellae. / இது வார்ப்பிரும்பில் இருக்கும்."
+    },
+    {
+        unit: "Unit – IV: POWDER METALLURGY AND HEAT TREATMENT",
+        qIndex: 78,
+        question: "18. The eutectoid point occurs at:",
+        options: ["a) 1130°C", "b) 723°C", "c) 912°C", "d) 600°C"],
+        correct: "b",
+        explanation: "a) 1130°C: This is the eutectic point. / இது யூடெக்டிக் புள்ளி.\nc) 912°C: Pure iron transformation point (gamma to alpha). / தூய இரும்பு மாறும் புள்ளி."
+    },
+    {
+        unit: "Unit – IV: POWDER METALLURGY AND HEAT TREATMENT",
+        qIndex: 79,
+        question: "19. Which of the following form of iron is magnetic in nature?",
+        options: ["a) α (Alpha)", "b) β (Beta)", "c) γ (Gamma)", "d) δ (Delta)"],
+        correct: "a",
+        explanation: "b, c, d: Gamma (Austenite) is non-magnetic. / காமா இரும்பு காந்தத்தன்மை அற்றது."
+    },
+    {
+        unit: "Unit – IV: POWDER METALLURGY AND HEAT TREATMENT",
+        qIndex: 80,
+        question: "20. Which medium is fastest for quenching?",
+        options: ["a) Air", "b) Water", "c) Oil", "d) Salt bath"],
+        correct: "b",
+        explanation: "a) Air: Very slow cooling. / மிக மெதுவாக குளிரும்.\nc) Oil: Medium cooling speed. / நடுத்தர வேகம்.\nd) Salt bath: Often used for austempering. / இது சீரான வெப்பத்தை பராமரிக்க பயன்படும்."
+    },
+
+    // UNIT V
+    {
+        unit: "Unit – V: WORK HOLDING, TOOL HOLDING DEVICES AND POWER TOOLS",
+        qIndex: 81,
+        question: "1. Identify the device used to hold irregularly shaped workpieces on a lathe.",
+        options: ["a) Steady rest", "b) Faceplate", "c) Chuck", "d) Mandrel"],
+        correct: "b",
+        explanation: "a) Steady rest: Used for long, slender work. / நீளமான பொருட்களை தாங்கிப் பிடிக்க.\nc) Chuck: Better for symmetrical/cylindrical work. / உருளை வடிவப் பொருட்களுக்கு.\nd) Mandrel: Holds hollow workpieces. / உள்ளீடற்ற பொருட்களுக்கு."
+    },
+    {
+        unit: "Unit – V: WORK HOLDING, TOOL HOLDING DEVICES AND POWER TOOLS",
+        qIndex: 82,
+        question: "2. Which of the following is used to hold a job between centers on a lathe?",
+        options: ["a) Drive plate and carrier", "b) Chuck", "c) Mandrel", "d) Angle plate"],
+        correct: "a",
+        explanation: "b) Chuck: Holds the part directly. / பொருளை நேரடியாகப் பிடிக்கும்.\nc) Mandrel: Held between centers, but is a tool itself. / மையங்களுக்கு இடையில் இதுவே வைக்கப்படும்.\nd) Angle plate: Mounts to a faceplate. / ஃபேஸ்பிளேட்டில் இணைக்கப்படும்."
+    },
+    {
+        unit: "Unit – V: WORK HOLDING, TOOL HOLDING DEVICES AND POWER TOOLS",
+        qIndex: 83,
+        question: "3. Name the device used to support long slender workpieces during turning.",
+        options: ["a) Tailstock", "b) Steady rest", "c) Mandrel", "d) Chuck"],
+        correct: "b",
+        explanation: "a) Tailstock: Supports the end, but doesn't prevent bowing in the middle. / நடுவில் வளைவதைத் தடுக்காது.\nc, d: Used for holding, not middle-support. / பிடித்துக் கொள்ள மட்டுமே."
+    },
+    {
+        unit: "Unit – V: WORK HOLDING, TOOL HOLDING DEVICES AND POWER TOOLS",
+        qIndex: 84,
+        question: "4. The power tool used to tighten or loosen nuts and bolts quickly is:",
+        options: ["a) Circular saw", "b) Impact wrench", "c) Jigsaw", "d) Chainsaw"],
+        correct: "b",
+        explanation: "a, c, d: These are all cutting saws. / இவை அனைத்தும் மரம் வெட்டும் கருவிகள்."
+    },
+    {
+        unit: "Unit – V: WORK HOLDING, TOOL HOLDING DEVICES AND POWER TOOLS",
+        qIndex: 85,
+        question: "5. Why is a steady rest required in lathe operations?",
+        options: ["a) To increase cutting speed", "b) To support long workpieces", "c) To reduce tool wear", "d) To hold small parts"],
+        correct: "b",
+        explanation: "a) Cutting speed: Doesn't directly change spindle speed. / இது சுழலும் வேகத்தை மாற்றாது.\nc) Tool wear: Coolant affects this, not the rest. / கூலன்ட் இதைத் தடுக்கும்.\nd) Small parts: Chucks or collets are used. / சிறிய பொருட்களுக்கு சக் பயன்படும்."
+    },
+    {
+        unit: "Unit – V: WORK HOLDING, TOOL HOLDING DEVICES AND POWER TOOLS",
+        qIndex: 86,
+        question: "6. A mandrel is primarily used for:",
+        options: ["a) External turning", "b) Internal grinding", "c) Holding hollow workpieces", "d) Supporting centers"],
+        correct: "c",
+        explanation: "a) External turning: The mandrel allows external turning on hollow pieces, but its function is holding them. / இது பொருட்களைப் பிடிக்கவே பயன்படுகிறது.\nb) Internal grinding: Usually requires a chuck. / சக் மூலம் செய்யப்படும்.\nd) Supporting centers: It is supported by centers. / இது மையங்களால் தாங்கப்படும்."
+    },
+    {
+        unit: "Unit – V: WORK HOLDING, TOOL HOLDING DEVICES AND POWER TOOLS",
+        qIndex: 87,
+        question: "7. Which device provides precise angular indexing for machining operations?",
+        options: ["a) Tailstock", "b) Drill chuck", "c) Faceplate", "d) Indexing head"],
+        correct: "d",
+        explanation: "a, b, c: None of these have indexing worm gears to divide angles precisely. / இவற்றால் கோணங்களை துல்லியமாகப் பிரிக்க முடியாது."
+    },
+    {
+        unit: "Unit – V: WORK HOLDING, TOOL HOLDING DEVICES AND POWER TOOLS",
+        qIndex: 88,
+        question: "8. Which tool holds small round workpieces with high concentric accuracy?",
+        options: ["a) Four-jaw chuck", "b) Faceplate", "c) Magnetic chuck", "d) Collet"],
+        correct: "d",
+        explanation: "a) Four-jaw chuck: Requires manual centering. / கைமுறையாக மையப்படுத்த வேண்டும்.\nb) Faceplate: For irregular shapes. / ஒழுங்கற்ற வடிவங்களுக்கு.\nc) Magnetic chuck: Used on surface grinders. / அரைக்கும் இயந்திரங்களில் பயன்படும்."
+    },
+    {
+        unit: "Unit – V: WORK HOLDING, TOOL HOLDING DEVICES AND POWER TOOLS",
+        qIndex: 89,
+        question: "9. The function of a turret indexing mechanism is to:",
+        options: ["a) Rotate workpiece", "b) Change cutting tools quickly", "c) Hold cutting fluids", "d) Control feed rate"],
+        correct: "b",
+        explanation: "a) Rotate workpiece: The spindle does this. / ஸ்பிண்டில் சுழற்றும்.\nc) Fluids: Pumps do this. / பம்ப் இதைச் செய்யும்.\nd) Feed rate: Gearbox does this. / கியர்பாக்ஸ் கட்டுப்படுத்தும்."
+    },
+    {
+        unit: "Unit – V: WORK HOLDING, TOOL HOLDING DEVICES AND POWER TOOLS",
+        qIndex: 90,
+        question: "10. The function of an indexing head is:",
+        options: ["a) To control depth of cut", "b) To rotate the workpiece by a precise angle", "c) To grip tool", "d) To remove chips"],
+        correct: "b",
+        explanation: "a, c, d: Irrelevant to angular division on a milling machine. / இயந்திரப் பணிகளில் கோணத்தைப் பிரிப்பதே இதன் வேலை."
+    },
+    {
+        unit: "Unit – V: WORK HOLDING, TOOL HOLDING DEVICES AND POWER TOOLS",
+        qIndex: 91,
+        question: "11. The difference between steady rest and follower rest is:",
+        options: ["a) Steady rest supports near the tool, follower rest moves with tool", "b) Steady rest moves, follower rest fixed", "c) Both are same", "d) None of the above"],
+        correct: "a",
+        explanation: "b) Steady moves: This is backwards. / ஸ்டெடி ரெஸ்ட் நகராது.\nc) Both are same: They mount differently (bed vs carriage). / இரண்டும் வெவ்வேறானவை."
+    },
+    {
+        unit: "Unit – V: WORK HOLDING, TOOL HOLDING DEVICES AND POWER TOOLS",
+        qIndex: 92,
+        question: "12. A catch plate is used with:",
+        options: ["a) Mandrel", "b) Chuck", "c) Steady rest", "d) Vice"],
+        correct: "a",
+        explanation: "b, c, d: A catch plate specifically provides drive power when turning between centers (using a mandrel). / மையங்களுக்கு இடையே சுழற்ற இது பயன்படும்."
+    },
+    {
+        unit: "Unit – V: WORK HOLDING, TOOL HOLDING DEVICES AND POWER TOOLS",
+        qIndex: 93,
+        question: "13. Identify the device used for accurate angular positioning of workpiece.",
+        options: ["a) Indexing head", "b) Mandrel", "c) Chuck", "d) Faceplate"],
+        correct: "a",
+        explanation: "b, c, d: These just hold the work; they cannot divide a circle into specific degrees. / இவற்றால் கோணங்களை துல்லியமாகப் பிரிக்க முடியாது."
+    },
+    {
+        unit: "Unit – V: WORK HOLDING, TOOL HOLDING DEVICES AND POWER TOOLS",
+        qIndex: 94,
+        question: "14. The function of a four-way tool post is:",
+        options: ["a) Hold four workpieces", "b) Hold and change tools quickly", "c) Hold centers", "d) Support tailstock"],
+        correct: "b",
+        explanation: "a) Hold workpieces: It holds tools, not the work. / இது கருவிகளை மட்டுமே பிடிக்கும்.\nc, d: Centers belong in the tailstock or headstock. / சென்டர்கள் ஹெட்ஸ்டாக்கில் இருக்கும்."
+    },
+    {
+        unit: "Unit – V: WORK HOLDING, TOOL HOLDING DEVICES AND POWER TOOLS",
+        qIndex: 95,
+        question: "15. The advantage of using collets over chucks is:",
+        options: ["a) Higher accuracy and speed", "b) Low cost", "c) Heavy-duty work", "d) Manual operation"],
+        correct: "a",
+        explanation: "b) Low cost: Collets require a different collet for every exact size. / பல அளவுகளில் வாங்க அதிக செலவாகும்.\nc) Heavy-duty: Chucks grip harder for heavy cuts. / பெரிய சக் இதற்கு ஏற்றது."
+    },
+    {
+        unit: "Unit – V: WORK HOLDING, TOOL HOLDING DEVICES AND POWER TOOLS",
+        qIndex: 96,
+        question: "16. Select the proper device to machine a long shaft with minimum deflection.",
+        options: ["a) Steady rest", "b) Mandrel", "c) Faceplate", "d) Chuck"],
+        correct: "a",
+        explanation: "b, c, d: These cannot support the middle of a flexing shaft. / இவற்றால் நீளமான பொருளின் மையப் பகுதியை தாங்க முடியாது."
+    },
+    {
+        unit: "Unit – V: WORK HOLDING, TOOL HOLDING DEVICES AND POWER TOOLS",
+        qIndex: 97,
+        question: "17. Choose the correct tool-holding device for drilling multiple holes at different angles.",
+        options: ["a) Adapter", "b) Turret", "c) Arbor", "d) Collet"],
+        correct: "d",
+        explanation: "a) Adapter: Used for matching tapers. / டேப்பர்களை இணைக்கப் பயன்படும்.\nb) Turret: Holds multiple tools, but doesn't independently change part angle. / பல கருவிகளைப் பிடிக்கும்.\nc) Arbor: Holds milling cutters. / மில்லிங் கட்டரைப் பிடிக்கும்."
+    },
+    {
+        unit: "Unit – V: WORK HOLDING, TOOL HOLDING DEVICES AND POWER TOOLS",
+        qIndex: 98,
+        question: "18. If a job must be turned between centers, which setup should be used?",
+        options: ["a) Drive plate + carrier", "b) Chuck only", "c) Mandrel", "d) V-block"],
+        correct: "a",
+        explanation: "b) Chuck only: Does not use the tailstock center. / டெயில்ஸ்டாக் மையத்தைப் பயன்படுத்தாது.\nc) Mandrel: This is held by the centers and carrier. / இது மையங்களுக்கு இடையில் வைக்கப்படுவது.\nd) V-block: Used on drill presses/mills. / துளையிடும் இயந்திரத்தில் பயன்படும்."
+    },
+    {
+        unit: "Unit – V: WORK HOLDING, TOOL HOLDING DEVICES AND POWER TOOLS",
+        qIndex: 99,
+        question: "19. To machine a component requiring equal divisions, which device is suitable?",
+        options: ["a) Indexing head", "b) Vice", "c) Angle plate", "d) Mandrel"],
+        correct: "a",
+        explanation: "b, c, d: Cannot divide a full rotation mathematically. / சுழற்சியை சமமாகப் பிரிக்க முடியாது."
+    },
+    {
+        unit: "Unit – V: WORK HOLDING, TOOL HOLDING DEVICES AND POWER TOOLS",
+        qIndex: 100,
+        question: "20. For grinding or drilling operations requiring firm grip and precision, use:",
+        options: ["a) Collet chuck", "b) Magnetic chuck", "c) Drill sleeve", "d) V-block"],
+        correct: "a",
+        explanation: "b) Magnetic chuck: Used mostly on surface grinders for flat parts. / தட்டையான பொருட்களுக்கு பயன்படும்.\nc) Drill sleeve: Adapts morse tapers. / அடாப்டராக பயன்படும்.\nd) V-block: Holds round parts for manual drill press work, less precision than collet. / குறைந்த துல்லியம் கொண்டது."
+    }
+];
+
+let currentUnitIndex = 0;
+const units = [
+    "Unit – I: FOUNDRY TECHNOLOGY",
+    "Unit – II: WELDING TECHNOLOGY",
+    "Unit – III: FORGING AND PRESS WORKING",
+    "Unit – IV: POWDER METALLURGY AND HEAT TREATMENT",
+    "Unit – V: WORK HOLDING, TOOL HOLDING DEVICES AND POWER TOOLS"
+];
+
+const userAnswers = {};
+
+function renderCurrentUnit() {
+    const currentUnitName = units[currentUnitIndex];
+    document.getElementById("unit-badge").innerText = currentUnitName;
+    
+    const container = document.getElementById("questions-holder");
+    container.innerHTML = "";
+
+    const filteredQuestions = quizData.filter(q => q.unit === currentUnitName);
+
+    filteredQuestions.forEach((q) => {
+        const card = document.createElement("div");
+        card.className = "card";
+        
+        let optionsHTML = "";
+        q.options.forEach((opt, idx) => {
+            const letter = String.fromCharCode(97 + idx); // 'a', 'b', 'c', 'd'
+            const isChecked = userAnswers[q.qIndex] === letter ? "checked" : "";
+            optionsHTML += `
+                <li>
+                    <label class="option-label">
+                        <input type="radio" name="q_${q.qIndex}" value="${letter}" ${isChecked}>
+                        <span>${opt}</span>
+                    </label>
+                </li>
+            `;
+        });
+
+        card.innerHTML = `
+            <div class="q-header">${q.question}</div>
+            <ul class="options-list">${optionsHTML}</ul>
+        `;
+        container.appendChild(card);
+    });
+
+    const nextBtn = document.getElementById("next-btn");
+    if (currentUnitIndex === units.length - 1) {
+        nextBtn.innerHTML = "Submit & View Final Results &#10003;";
+    } else {
+        nextBtn.innerHTML = "Next Unit &rarr;";
+    }
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function processUnit() {
+    const currentUnitName = units[currentUnitIndex];
+    const filteredQuestions = quizData.filter(q => q.unit === currentUnitName);
+
+    // Record selections
+    filteredQuestions.forEach((q) => {
+        const selected = document.querySelector(`input[name="q_${q.qIndex}"]:checked`);
+        if (selected) {
+            userAnswers[q.qIndex] = selected.value;
+        }
+    });
+
+    if (currentUnitIndex < units.length - 1) {
+        currentUnitIndex++;
+        renderCurrentUnit();
+    } else {
+        showResults();
+    }
+}
+
+function showResults() {
+    document.getElementById("quiz-container").style.display = "none";
+    document.getElementById("unit-badge").style.display = "none";
+    document.getElementById("results-container").style.display = "block";
+
+    let totalCorrect = 0;
+    const unitScores = {};
+    units.forEach(u => unitScores[u] = 0);
+
+    const wrongQuestions = [];
+
+    quizData.forEach((q) => {
+        const uAns = userAnswers[q.qIndex];
+        if (uAns === q.correct) {
+            totalCorrect++;
+            unitScores[q.unit]++;
+        } else {
+            wrongQuestions.push({
+                ...q,
+                userChoice: uAns || "Not Answered"
+            });
+        }
+    });
+
+    // Score & Emoji Logic
+    const finalScoreElem = document.getElementById("final-score");
+    const emojiElem = document.getElementById("emoji-result");
+    const statusElem = document.getElementById("performance-status");
+
+    finalScoreElem.innerText = `${totalCorrect} / 100`;
+
+    if (totalCorrect >= 80) {
+        emojiElem.innerText = "👼";
+        statusElem.innerText = "Angelic Performance! Excellent Master of Content!";
+        statusElem.style.color = "#16a34a";
+    } else if (totalCorrect >= 50) {
+        emojiElem.innerText = "😟";
+        statusElem.innerText = "Poor Performance. Needs Improvement & Revision!";
+        statusElem.style.color = "#d97706";
+    } else {
+        emojiElem.innerText = "😡";
+        statusElem.innerText = "Angry Result! Immediate Study Required!";
+        statusElem.style.color = "#dc2626";
+    }
+
+    // Unit score breakdown
+    const unitBreakdownElem = document.getElementById("unit-breakdown");
+    unitBreakdownElem.innerHTML = "";
+    units.forEach((u, i) => {
+        const box = document.createElement("div");
+        box.className = "unit-score-card";
+        box.innerHTML = `Unit ${i+1}<strong>${unitScores[u]} / 20</strong>`;
+        unitBreakdownElem.appendChild(box);
+    });
+
+    // Render Wrong Answers Review
+    const reviewHolder = document.getElementById("review-holder");
+    reviewHolder.innerHTML = "";
+
+    if (wrongQuestions.length === 0) {
+        reviewHolder.innerHTML = `<div class="card" style="text-align:center; color: var(--correct-text); font-weight: 600;">Congratulations! Perfect score, zero mistakes made!</div>`;
+    } else {
+        wrongQuestions.forEach((q) => {
+            const card = document.createElement("div");
+            card.className = "review-card";
+
+            const userOptText = q.options.find(o => o.startsWith(q.userChoice)) || "Not Answered";
+            const correctOptText = q.options.find(o => o.startsWith(q.correct));
+
+            card.innerHTML = `
+                <div class="review-q-title">[${q.unit}] ${q.question}</div>
+                <div class="answer-meta">
+                    Your Choice: <span class="your-ans">${userOptText}</span><br>
+                    Correct Choice: <span class="correct-ans">${correctOptText}</span>
+                </div>
+                <div class="explanation-box">
+                    <strong>Why other options are wrong:</strong>\n${q.explanation}
+                </div>
+            `;
+            reviewHolder.appendChild(card);
+        });
+    }
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Initial render
+renderCurrentUnit();
+</script>
+
+</body>
+</html>
