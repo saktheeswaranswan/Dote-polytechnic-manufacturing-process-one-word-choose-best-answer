@@ -1,0 +1,627 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manufacturing Technology Quiz</title>
+
+<style>
+:root {
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --bg: #f8fafc;
+  --card-bg: #ffffff;
+  --text: #1e293b;
+  --text-muted: #64748b;
+  --correct-bg: #dcfce7;
+  --correct-border: #22c55e;
+  --correct-text: #15803d;
+  --wrong-bg: #fee2e2;
+  --wrong-border: #ef4444;
+  --wrong-text: #b91c1c;
+  --border: #e2e8f0;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: Arial, "Noto Sans Tamil", sans-serif;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  padding: 20px 10px;
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 850px;
+  margin: auto;
+}
+
+header, .card, .score-box {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 22px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 5px #0000000a;
+}
+
+header {
+  text-align: center;
+}
+
+h1 {
+  color: var(--primary);
+  font-size: 1.8rem;
+  margin-bottom: 10px;
+}
+
+.language-bar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--bg);
+  padding: 10px 0;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.lang-btn {
+  border: 1px solid var(--primary);
+  background: white;
+  color: var(--primary);
+  padding: 10px 20px;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.lang-btn.active {
+  background: var(--primary);
+  color: white;
+}
+
+.unit-nav-badge {
+  display: inline-block;
+  background: #e0e7ff;
+  color: var(--primary);
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-weight: bold;
+  margin-top: 8px;
+}
+
+.q-header {
+  font-weight: bold;
+  font-size: 1.1rem;
+  margin-bottom: 12px;
+}
+
+.options-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.option-label {
+  display: flex;
+  align-items: flex-start;
+  padding: 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  gap: 10px;
+}
+
+.option-label:hover {
+  border-color: var(--primary);
+  background: #f5f3ff;
+}
+
+.option-label input {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  margin-top: 4px;
+  accent-color: var(--primary);
+}
+
+.btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  margin: 5px 0 20px;
+}
+
+.btn:hover {
+  background: var(--primary-hover);
+}
+
+#results-container {
+  display: none;
+}
+
+.score-box {
+  text-align: center;
+}
+
+.emoji-display {
+  font-size: 4rem;
+  margin: 15px;
+}
+
+.score-text {
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--primary);
+}
+
+.score-status {
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+.review-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-left: 5px solid var(--wrong-border);
+  border-radius: 10px;
+  padding: 18px;
+  margin-bottom: 15px;
+}
+
+.review-q-title {
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.answer-meta {
+  margin-bottom: 10px;
+}
+
+.your-ans {
+  color: var(--wrong-text);
+  font-weight: bold;
+}
+
+.correct-ans {
+  color: var(--correct-text);
+  font-weight: bold;
+}
+
+.explanation-box {
+  background: #f8fafc;
+  padding: 12px;
+  border-radius: 6px;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.unit-score-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.unit-score-card {
+  background: #f1f5f9;
+  padding: 12px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.unit-score-card strong {
+  display: block;
+  color: var(--primary);
+  font-size: 1.1rem;
+}
+
+@media(max-width:600px) {
+  body { padding: 10px 5px; }
+  header, .card, .score-box { padding: 15px; }
+  h1 { font-size: 1.4rem; }
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<header>
+  <h1 id="page-title">Manufacturing Technology Quiz</h1>
+
+  <div class="language-bar">
+    <button class="lang-btn active"
+      id="english-btn" onclick="setLanguage('en')">
+      English
+    </button>
+
+    <button class="lang-btn"
+      id="tamil-btn" onclick="setLanguage('ta')">
+      தமிழ்
+    </button>
+  </div>
+
+  <div class="unit-nav-badge" id="unit-badge"></div>
+</header>
+
+<div id="quiz-container">
+  <div id="questions-holder"></div>
+  <button class="btn" id="next-btn" onclick="processUnit()">
+    Next Unit →
+  </button>
+</div>
+
+<div id="results-container">
+  <div class="score-box">
+    <h2 id="complete-title">Quiz Complete!</h2>
+    <div class="emoji-display" id="emoji-result">🎉</div>
+    <div class="score-text" id="final-score">0 / 100</div>
+    <div class="score-status" id="performance-status"></div>
+    <div class="unit-score-summary" id="unit-breakdown"></div>
+  </div>
+
+  <h2 id="review-heading">Review Incorrect Answers</h2>
+  <div id="review-holder"></div>
+
+  <button class="btn" onclick="restartQuiz()" id="restart-btn">
+    Restart Quiz
+  </button>
+</div>
+
+</div>
+
+<script>
+// ============================================================
+// INSERT YOUR EXISTING quizData ARRAY HERE WITHOUT CHANGES.
+// It must contain all 100 questions and their explanations.
+// ============================================================
+
+const quizData = [
+  // Paste your complete original 100-question array here.
+  // Do not leave this example array empty when running the quiz.
+];
+
+const units = [
+  "Unit – I: FOUNDRY TECHNOLOGY",
+  "Unit – II: WELDING TECHNOLOGY",
+  "Unit – III: FORGING AND PRESS WORKING",
+  "Unit – IV: POWDER METALLURGY AND HEAT TREATMENT",
+  "Unit – V: WORK HOLDING, TOOL HOLDING DEVICES AND POWER TOOLS"
+];
+
+let currentUnitIndex = 0;
+let language = "en";
+const userAnswers = {};
+
+// ============================================================
+// TAMIL TRANSLATION DICTIONARY
+// Add translations by question index and option letter.
+// Original English remains the default.
+// ============================================================
+
+const ta = {
+  title: "உற்பத்தித் தொழில்நுட்ப வினாடி வினா",
+
+  units: [
+    "அலகு I: வார்ப்புத் தொழில்நுட்பம்",
+    "அலகு II: வெல்டிங் தொழில்நுட்பம்",
+    "அலகு III: ஃபோர்ஜிங் மற்றும் தாள் உலோகச் செயலாக்கம்",
+    "அலகு IV: தூள் உலோகவியல் மற்றும் வெப்பச் சிகிச்சை",
+    "அலகு V: வேலைப்பொருள் பிடிப்பான்கள், கருவிப் பிடிப்பான்கள் மற்றும் மின்சக்திக் கருவிகள்"
+  ],
+
+  next: "அடுத்த அலகு →",
+  submit: "சமர்ப்பித்து இறுதி முடிவைப் பார்க்கவும் ✓",
+  complete: "வினாடி வினா நிறைவடைந்தது!",
+  review: "தவறான விடைகள் மற்றும் விளக்கங்கள்",
+  restart: "மீண்டும் தொடங்கு",
+  yourAnswer: "உங்கள் விடை",
+  correctAnswer: "சரியான விடை",
+  unanswered: "விடையளிக்கவில்லை",
+  whyWrong: "மற்ற விருப்பங்கள் ஏன் தவறு:",
+  perfect: "வாழ்த்துகள்! எல்லா விடைகளும் சரியானவை!",
+  outstanding: "மிகச் சிறப்பான செயல்திறன்!",
+  average: "நல்ல முயற்சி! மேலும் பயிற்சி செய்யுங்கள்.",
+  poor: "மேலும் படித்து மீண்டும் முயற்சி செய்யுங்கள்.",
+
+  questions: {
+    // Example translations:
+    // 1: {
+    //   question: "மணல் வார்ப்பில் பொதுவாகப் பயன்படுத்தப்படும் பேட்டர்ன் பொருள் எது?",
+    //   options: {
+    //     a: "மெழுகு",
+    //     b: "உலோகம்",
+    //     c: "நெகிழி",
+    //     d: "மரம்"
+    //   },
+    //   explanation: "மெழுகு இன்வெஸ்ட்மென்ட் வார்ப்பில் பயன்படுகிறது."
+    // },
+    //
+    // Add entries for qIndex 1 through 100.
+    // Each entry can translate the question, options and explanation.
+  }
+};
+
+function translateQuestion(q) {
+  const translated = ta.questions[q.qIndex] || {};
+
+  return {
+    question: language === "ta" && translated.question
+      ? translated.question : q.question,
+
+    options: q.options.map((option, i) => {
+      const letter = String.fromCharCode(97 + i);
+      const optionMap = translated.options || {};
+
+      if (language === "ta" && optionMap[letter]) {
+        return letter + ") " + optionMap[letter];
+      }
+
+      return option;
+    }),
+
+    explanation: language === "ta" && translated.explanation
+      ? translated.explanation : q.explanation
+  };
+}
+
+function unitName(index) {
+  return language === "ta" ? ta.units[index] : units[index];
+}
+
+function setLanguage(newLanguage) {
+  language = newLanguage;
+
+  document.documentElement.lang =
+    language === "ta" ? "ta" : "en";
+
+  document.getElementById("english-btn")
+    .classList.toggle("active", language === "en");
+
+  document.getElementById("tamil-btn")
+    .classList.toggle("active", language === "ta");
+
+  document.getElementById("page-title").textContent =
+    language === "ta" ? ta.title : "Manufacturing Technology Quiz";
+
+  renderCurrentUnit();
+
+  if (document.getElementById("results-container").style.display
+      === "block") {
+    showResults();
+  }
+}
+
+function renderCurrentUnit() {
+  document.getElementById("unit-badge").textContent =
+    unitName(currentUnitIndex);
+
+  const container = document.getElementById("questions-holder");
+  container.innerHTML = "";
+
+  const filteredQuestions = quizData.filter(
+    q => q.unit === units[currentUnitIndex]
+  );
+
+  filteredQuestions.forEach(q => {
+    const translated = translateQuestion(q);
+    const card = document.createElement("div");
+    card.className = "card";
+
+    const heading = document.createElement("div");
+    heading.className = "q-header";
+    heading.textContent = translated.question;
+    card.appendChild(heading);
+
+    const list = document.createElement("ul");
+    list.className = "options-list";
+
+    translated.options.forEach((option, index) => {
+      const letter = String.fromCharCode(97 + index);
+      const li = document.createElement("li");
+      const label = document.createElement("label");
+      label.className = "option-label";
+
+      const input = document.createElement("input");
+      input.type = "radio";
+      input.name = "q_" + q.qIndex;
+      input.value = letter;
+      input.checked = userAnswers[q.qIndex] === letter;
+
+      input.addEventListener("change", () => {
+        userAnswers[q.qIndex] = letter;
+      });
+
+      const span = document.createElement("span");
+      span.textContent = option;
+
+      label.appendChild(input);
+      label.appendChild(span);
+      li.appendChild(label);
+      list.appendChild(li);
+    });
+
+    card.appendChild(list);
+    container.appendChild(card);
+  });
+
+  document.getElementById("next-btn").textContent =
+    currentUnitIndex === units.length - 1
+      ? (language === "ta" ? ta.submit : "Submit & View Final Results ✓")
+      : (language === "ta" ? ta.next : "Next Unit →");
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function processUnit() {
+  if (currentUnitIndex < units.length - 1) {
+    currentUnitIndex++;
+    renderCurrentUnit();
+  } else {
+    showResults();
+  }
+}
+
+function showResults() {
+  document.getElementById("quiz-container").style.display = "none";
+  document.getElementById("unit-badge").style.display = "none";
+  document.getElementById("results-container").style.display = "block";
+
+  let totalCorrect = 0;
+  const unitScores = {};
+  const wrongQuestions = [];
+
+  units.forEach(u => unitScores[u] = 0);
+
+  quizData.forEach(q => {
+    if (userAnswers[q.qIndex] === q.correct) {
+      totalCorrect++;
+      unitScores[q.unit]++;
+    } else {
+      wrongQuestions.push(q);
+    }
+  });
+
+  document.getElementById("complete-title").textContent =
+    language === "ta" ? ta.complete : "Quiz Complete!";
+
+  document.getElementById("final-score").textContent =
+    `${totalCorrect} / ${quizData.length}`;
+
+  let emoji, status;
+
+  if (totalCorrect >= 80) {
+    emoji = "🏆";
+    status = language === "ta"
+      ? ta.outstanding : "Outstanding Performance!";
+  } else if (totalCorrect >= 50) {
+    emoji = "📘";
+    status = language === "ta"
+      ? ta.average : "Good effort! Keep practising.";
+  } else {
+    emoji = "📚";
+    status = language === "ta"
+      ? ta.poor : "Study and try again.";
+  }
+
+  document.getElementById("emoji-result").textContent = emoji;
+  document.getElementById("performance-status").textContent = status;
+
+  const breakdown = document.getElementById("unit-breakdown");
+  breakdown.innerHTML = "";
+
+  units.forEach((u, i) => {
+    const box = document.createElement("div");
+    box.className = "unit-score-card";
+
+    const title = document.createElement("span");
+    title.textContent = language === "ta"
+      ? `அலகு ${i + 1}` : `Unit ${i + 1}`;
+
+    const score = document.createElement("strong");
+    score.textContent = `${unitScores[u]} / 20`;
+
+    box.appendChild(title);
+    box.appendChild(score);
+    breakdown.appendChild(box);
+  });
+
+  document.getElementById("review-heading").textContent =
+    language === "ta" ? ta.review : "Review Incorrect Answers & Explanations";
+
+  const holder = document.getElementById("review-holder");
+  holder.innerHTML = "";
+
+  if (wrongQuestions.length === 0) {
+    const success = document.createElement("div");
+    success.className = "card";
+    success.textContent = language === "ta"
+      ? ta.perfect
+      : "Congratulations! Perfect score, zero mistakes made!";
+    holder.appendChild(success);
+  } else {
+    wrongQuestions.forEach(q => {
+      const translated = translateQuestion(q);
+      const card = document.createElement("div");
+      card.className = "review-card";
+
+      const title = document.createElement("div");
+      title.className = "review-q-title";
+      title.textContent =
+        `[${unitName(units.indexOf(q.unit))}] ${translated.question}`;
+
+      const answer = document.createElement("div");
+      answer.className = "answer-meta";
+
+      const userLetter = userAnswers[q.qIndex];
+      const userIndex = userLetter
+        ? userLetter.charCodeAt(0) - 97 : -1;
+      const correctIndex = q.correct.charCodeAt(0) - 97;
+
+      const userText = userIndex >= 0
+        ? translated.options[userIndex]
+        : (language === "ta" ? ta.unanswered : "Not Answered");
+
+      const correctText = translated.options[correctIndex];
+
+      answer.textContent =
+        `${language === "ta" ? ta.yourAnswer : "Your Choice"}: ${userText}\n` +
+        `${language === "ta" ? ta.correctAnswer : "Correct Choice"}: ${correctText}`;
+
+      const explanation = document.createElement("div");
+      explanation.className = "explanation-box";
+      explanation.textContent =
+        `${language === "ta" ? ta.whyWrong : "Explanation:"}\n` +
+        translated.explanation;
+
+      card.appendChild(title);
+      card.appendChild(answer);
+      card.appendChild(explanation);
+      holder.appendChild(card);
+    });
+  }
+
+  document.getElementById("restart-btn").textContent =
+    language === "ta" ? ta.restart : "Restart Quiz";
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function restartQuiz() {
+  currentUnitIndex = 0;
+
+  Object.keys(userAnswers).forEach(key => delete userAnswers[key]);
+
+  document.getElementById("quiz-container").style.display = "block";
+  document.getElementById("unit-badge").style.display = "inline-block";
+  document.getElementById("results-container").style.display = "none";
+
+  renderCurrentUnit();
+}
+
+if (quizData.length !== 100) {
+  console.warn(
+    "Insert all 100 original questions into quizData before using the quiz."
+  );
+}
+
+renderCurrentUnit();
+</script>
+</body>
+</html>
