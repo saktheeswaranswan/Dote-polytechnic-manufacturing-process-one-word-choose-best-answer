@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manufacturing Technology Quiz</title>
+    <style>
+        :root { 
+            --primary: #4f46e5; 
+            --primary-hover: #4338ca; 
+            --bg: #f8fafc; 
+            --card-bg: #ffffff; 
+            --text: #1e293b; 
+            --text-muted: #64748b; 
+            --correct-bg: #dcfce7; 
+            --correct-border: #22c55e; 
+            --correct-text: #15803d; 
+            --wrong-bg: #fee2e2; 
+            --wrong-border: #ef4444; 
+            --wrong-text: #b91c1c; 
+            --border: #e2e8f0; 
+        } 
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; } 
+        body { background-color: var(--bg); color: var(--text); padding: 20px 10px; line-height: 1.6; } 
+        .container { max-width: 850px; margin: 0 auto; } 
+        header { text-align: center; margin-bottom: 20px; padding: 20px; background: var(--card-bg); border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); } 
+        h1 { font-size: 1.8rem; color: var(--primary); margin-bottom: 8px; } 
+        .unit-nav-badge { display: inline-block; background: #e0e7ff; color: var(--primary); padding: 4px 12px; border-radius: 20px; font-weight: 600; font-size: 0.9rem; margin-top: 5px; } 
+        
+        /* Two Global Toggle Buttons Style */
+        .controls-header { display: flex; flex-direction: column; gap: 12px; justify-content: center; align-items: center; margin-bottom: 20px; position: sticky; top: 10px; z-index: 100; }
+        @media (min-width: 600px) { .controls-header { flex-direction: row; } }
+        
+        button { border: none; font-weight: bold; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .lang-toggle-btn { background: #10b981; color: white; padding: 12px 20px; border-radius: 30px; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; width: 100%; justify-content: center; max-width: 350px; }
+        .lang-toggle-btn:hover { background: #059669; transform: translateY(-2px); }
+        
+        .pron-toggle-btn { background: #ef4444; color: white; padding: 12px 20px; border-radius: 30px; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; width: 100%; justify-content: center; max-width: 350px; }
+        .pron-toggle-btn:hover { background: #dc2626; transform: translateY(-2px); }
+
+        .card { background: var(--card-bg); border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid var(--border); } 
+        .q-header { font-weight: 600; font-size: 1.1rem; margin-bottom: 12px; color: #0f172a; } 
+        .options-list { list-style: none; display: flex; flex-direction: column; gap: 10px; } 
+        
+        /* Updated Option Label Layout to accommodate language lines nicely */
+        .option-label { display: flex; flex-direction: column; padding: 12px 16px; border: 1.5px solid var(--border); border-radius: 8px; cursor: pointer; transition: all 0.2s ease; background: #f9fafb; } 
+        .option-label:hover { border-color: var(--primary); background: #f5f3ff; } 
+        .option-main { display: flex; align-items: center; }
+        .option-main input { margin-right: 12px; width: 18px; height: 18px; accent-color: var(--primary); } 
+        
+        .btn { display: block; width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background 0.2s ease; text-align: center; margin-top: 20px; } 
+        .btn:hover { background: var(--primary-hover); } 
+        
+        /* Vocabulary/Pronunciation Box Styles */
+        .vocab-content { background: #fff1f2; border: 1px solid #fecdd3; padding: 16px; border-radius: 8px; margin-top: 15px; }
+        .vocab-title { font-size: 0.95rem; color: #be123c; margin-bottom: 10px; font-weight: 700; border-bottom: 2px solid #fda4af; padding-bottom: 5px; }
+        .vocab-item { margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px dashed #fda4af; font-size: 0.9rem; }
+        .vocab-item:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+        .vocab-en { color: #1e3a8a; font-weight: 600; }
+        .vocab-pron { color: #b45309; font-weight: 600;}
+        .vocab-mean { color: #334155; margin-top: 4px; }
+
+        /* Dynamically Injected Translation Styles */
+        .language-line { margin-top: 8px; padding: 8px 12px; border-radius: 5px; font-size: 0.95em; width: 100%; box-sizing: border-box; }
+        .meaning-line { background-color: #d1fae5; color: #065f46; border-left: 4px solid #10b981; }
+        .pronunciation-line { background-color: #fee2e2; color: #991b1b; border-left: 4px solid #ef4444; }
+        strong { font-weight: 600; }
+
+        /* Results Styles */ 
+        #results-container { display: none; } 
+        .score-box { text-align: center; padding: 30px; background: var(--card-bg); border-radius: 12px; margin-bottom: 25px; border: 1px solid var(--border); } 
+        .emoji-display { font-size: 5rem; margin: 15px 0; line-height: 1; } 
+        .score-text { font-size: 2rem; font-weight: 700; color: var(--primary); } 
+        .score-status { font-size: 1.2rem; font-weight: 600; margin-top: 5px; } 
+        .review-card { background: var(--card-bg); border-radius: 12px; padding: 20px; margin-bottom: 15px; border-left: 5px solid var(--wrong-border); box-shadow: 0 2px 4px rgba(0,0,0,0.05); } 
+        .review-q-title { font-weight: 600; margin-bottom: 8px; } 
+        .answer-meta { font-size: 0.95rem; margin-bottom: 10px; } 
+        .your-ans { color: var(--wrong-text); font-weight: 600; } 
+        .correct-ans { color: var(--correct-text); font-weight: 600; } 
+        .explanation-box { background: #f8fafc; padding: 12px; border-radius: 6px; font-size: 0.9rem; color: #334155; border: 1px solid #e2e8f0; white-space: pre-line; } 
+        .unit-score-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-top: 20px; } 
+        .unit-score-card { background: #f1f5f9; padding: 10px; border-radius: 8px; text-align: center; font-size: 0.85rem; } 
+        .unit-score-card strong { display: block; font-size: 1.1rem; color: var(--primary); } 
+        
+        @media (max-width: 600px) { 
+            body { padding: 10px 5px; } 
+            .card { padding: 16px; } 
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Manufacturing Technology Quiz</h1>
+        <div id="unit-badge" class="unit-nav-badge"></div>
+    </header>
+    
+    <div class="controls-header" id="controls-header">
+        <button id="lang-toggle-btn" class="lang-toggle-btn" onclick="toggleLanguage()">
+            <span>🌐</span> Show Tamil Meaning
+        </button>
+        <button id="pron-toggle-btn" class="pron-toggle-btn" onclick="togglePronunciation()">
+            <span>🗣️</span> Show Tamil Pronunciation
+        </button>
+    </div>
+
+    <div id="quiz-container">
+        <div id="questions-holder"></div>
+        <button id="next-btn" class="btn" onclick="processUnit()">Next Unit →</button>
+    </div>
+    
+    <div id="results-container">
+        <div class="score-box">
+            <div id="emoji-result" class="emoji-display"></div>
+            <div id="final-score" class="score-text"></div>
+            <div id="performance-status" class="score-status"></div>
+            <div id="unit-breakdown" class="unit-score-summary"></div>
+        </div>
+        <h2>Review Incorrect Answers & Explanations:</h2>
+        <div id="review-holder"></div>
+    </div>
+</div>
+
+<script>
+// --- GLOBAL STATE ---
+let currentUnitIndex = 0;
+const units = [
+    "Unit – I: FOUNDRY TECHNOLOGY",
+    "Unit – II: WELDING TECHNOLOGY",
+    "Unit – III: FORGING AND PRESS WORKING",
+    "Unit – IV: POWDER METALLURGY AND HEAT TREATMENT",
+    "Unit – V: WORK HOLDING, TOOL HOLDING DEVICES AND POWER TOOLS"
+];
+const userAnswers = {};
+
+// Independent toggle states for Translation and Pronunciation
+let showMeanings = false;
+let showPronunciation = false;
+
+// Cache results so repeated clicks do not repeatedly request translations
+const languageCache = new Map();
+
+function toggleLanguage() {
+    showMeanings = !showMeanings;
+    const btn = document.getElementById("lang-toggle-btn");
+    btn.innerHTML = showMeanings ? '<span>🌐</span> Hide Tamil Meaning' : '<span>🌐</span> Show Tamil Meaning';
+    btn.style.background = showMeanings ? "#3b82f6" : "#10b981"; // Changes to blue when active
+    renderCurrentUnit();
+}
+
+function togglePronunciation() {
+    showPronunciation = !showPronunciation;
+    const btn = document.getElementById("pron-toggle-btn");
+    btn.innerHTML = showPronunciation ? '<span>🗣️</span> Hide Tamil Pronunciation' : '<span>🗣️</span> Show Tamil Pronunciation';
+    btn.style.background = showPronunciation ? "#9f1239" : "#ef4444"; // Changes to dark red when active
+    renderCurrentUnit();
+}
+
+// Remove question numbers and answer labels before processing
+function cleanLanguageText(text) {
+    return String(text || "")
+        .replace(/^\s*\d+\.\s*/, "")
+        .replace(/^\s*[a-d]\)\s*/i, "")
+        .trim();
+}
+
+// Escape text placed in a data attribute
+function languageLineHTML(kind, sourceText, fixedText = "") {
+    const label = kind === "meaning" ? "தமிழ் பொருள்" : "தமிழ் உச்சரிப்பு";
+    return `
+        <div class="language-line ${kind}-line" data-kind="${kind}" data-source="${encodeURIComponent(sourceText)}" data-fixed="${encodeURIComponent(fixedText)}">
+            <strong>${label}:</strong> <span class="language-value">ஏற்றுகிறது... (Loading...)</span>
+        </div>
+    `;
+}
+
+// Obtain Tamil meaning for text not already translated in quizData
+async function requestTamilMeaning(text) {
+    const url = new URL("https://translate.googleapis.com/translate_a/single");
+    url.search = new URLSearchParams({
+        client: "gtx", sl: "en", tl: "ta", dt: "t", q: text
+    }).toString();
+
+    const response = await fetch(url.toString());
+    if (!response.ok) throw new Error("Tamil translation unavailable");
+    
+    const data = await response.json();
+    const result = Array.isArray(data[0]) ? data[0].map(part => part[0] || "").join("") : "";
+    if (!result) throw new Error("Empty translation");
+    
+    return result;
+}
+
+// Convert English text to Tamil-script pronunciation
+async function requestTamilPronunciation(text) {
+    const url = new URL("https://inputtools.google.com/request");
+    url.search = new URLSearchParams({
+        text: text, itc: "ta-t-i0-und", num: "1", cp: "0", cs: "0", ie: "utf-8", oe: "utf-8"
+    }).toString();
+
+    const response = await fetch(url.toString());
+    if (!response.ok) throw new Error("Tamil pronunciation unavailable");
+    
+    const data = await response.json();
+    if (data[0] !== "SUCCESS" || !Array.isArray(data[1])) {
+        throw new Error("Pronunciation conversion failed");
+    }
+
+    const parts = data[1].map(item => {
+        return (Array.isArray(item[1]) && item[1].length > 0) ? item[1][0] : item[0];
+    });
+
+    return parts.join(" ");
+}
+
+// Process all visible placeholder lines and load data
+async function processLanguageLines() {
+    const lines = document.querySelectorAll('.language-line');
+    
+    for (const line of lines) {
+        const kind = line.getAttribute('data-kind');
+        const sourceText = decodeURIComponent(line.getAttribute('data-source'));
+        const fixedText = decodeURIComponent(line.getAttribute('data-fixed'));
+        const valueSpan = line.querySelector('.language-value');
+
+        // 1. Check if fixed text was provided in the array
+        if (fixedText && fixedText !== "undefined" && fixedText.trim() !== "") {
+            valueSpan.textContent = fixedText;
+            continue;
+        }
+
+        // 2. Check cache
+        const cacheKey = `${kind}_${sourceText}`;
+        if (languageCache.has(cacheKey)) {
+            valueSpan.textContent = languageCache.get(cacheKey);
+            continue;
+        }
+
+        // 3. Fetch from API
+        try {
+            let result = "";
+            if (kind === "meaning") {
+                result = await requestTamilMeaning(sourceText);
+            } else if (kind === "pronunciation") {
+                result = await requestTamilPronunciation(sourceText);
+            }
+            
+            languageCache.set(cacheKey, result);
+            valueSpan.textContent = result;
+        } catch (error) {
+            valueSpan.textContent = "Unable to load (பிழை).";
+            console.error("API Error:", error);
+        }
+    }
+}
+
+// --- QUIZ DATA ---
+const quizData = [
+    // UNIT I
+    { 
+        unit: "Unit – I: FOUNDRY TECHNOLOGY", qIndex: 1, 
+        question: "1. The most used material for patterns in sand casting is:", 
+        questionTa: "மணல் வார்ப்பில் மாதிரி (பேட்டர்ன்) தயாரிக்க அதிகம் பயன்படுத்தப்படும் பொருள் எது?",
+        options: ["a) Wax", "b) Metal", "c) Plastic", "d) Wood"], 
+        optionsTa: ["மெழுகு (Wax)", "உலோகம் (Metal)", "பிளாஸ்டிக் (Plastic)", "மரம் (Wood)"],
+        correct: "d", 
+        explanation: "a) Wax: Used for investment casting, not standard sand casting.\nb) Metal: Used mainly for mass production, not general use.\nc) Plastic: Less common and more specific than wood.",
+        vocab: [
+            { word: "Pattern", pron: "பேட்டர்ன்", mean: "வார்ப்பின் வடிவத்தை உருவாக்கப் பயன்படும் மாதிரி" },
+            { word: "Sand casting", pron: "சாண்ட் காஸ்டிங்", mean: "மணல் வார்ப்பு முறை" }
+        ]
+    },
+    { 
+        unit: "Unit – I: FOUNDRY TECHNOLOGY", qIndex: 2, 
+        question: "2. A pattern is used in foundry for:", 
+        questionTa: "ஃபவுண்டரியில் (foundry) பேட்டர்ன் எதற்காகப் பயன்படுத்தப்படுகிறது?",
+        options: ["a) Pouring molten metal", "b) Making mould cavity", "c) Cooling the casting", "d) Strengthening the sand"], 
+        optionsTa: ["உருகிய உலோகத்தை ஊற்றுவதற்கு", "அச்சுக்குழி (mould cavity) உருவாக்குவதற்கு", "வார்ப்பைக் குளிரச் செய்வதற்கு", "மணலை வலுப்படுத்துவதற்கு"],
+        correct: "b", 
+        explanation: "a) Pouring molten metal: This is done via runners/sprues.\nc) Cooling the casting: Happens naturally or via chills.\nd) Strengthening the sand: Done by adding binders.",
+        vocab: [
+            { word: "Foundry", pron: "ஃபவுண்டரி", mean: "உலோகங்களை உருக்கி வார்க்கும் தொழிற்சாலை" },
+            { word: "Mould cavity", pron: "மோல்டு கேவிட்டி", mean: "அச்சுக்குழி (உலோகம் ஊற்றப்படும் வெற்றிடம்)" },
+            { word: "Molten metal", pron: "மோல்டன் மெட்டல்", mean: "உருகிய உலோகம்" }
+        ]
+    },
+    { 
+        unit: "Unit – I: FOUNDRY TECHNOLOGY", qIndex: 3, 
+        question: "3. The allowance given to a pattern for metal contraction during cooling is:", 
+        questionTa: "குளிர்ச்சியடையும் போது உலோகம் சுருங்குவதை ஈடுகட்ட பேட்டர்னில் வழங்கப்படும் அளவு (allowance) எது?",
+        options: ["a) Draft allowance", "b) Machining allowance", "c) Shrinkage allowance", "d) Rapping allowance"], 
+        optionsTa: ["டிராஃப்ட் அலவன்ஸ்", "எந்திர வேலைக்கான அலவன்ஸ்", "சுருக்க அலவன்ஸ் (Shrinkage allowance)", "ராப்பிங் அலவன்ஸ்"],
+        correct: "c", 
+        explanation: "a) Draft allowance: Given for easy removal of the pattern.\nb) Machining allowance: Extra material for final machining.\nd) Rapping allowance: Compensates for enlarging when shaking out.",
+        vocab: [
+            { word: "Allowance", pron: "அலவன்ஸ்", mean: "கூடுதல் அல்லது குறைத்து வழங்கப்படும் அளவு" },
+            { word: "Shrinkage", pron: "ஷ்ரிங்கேஜ்", mean: "சுருக்கம்" }
+        ]
+    },
+    { 
+        unit: "Unit – I: FOUNDRY TECHNOLOGY", qIndex: 4, 
+        question: "4. The box used to hold the moulding sand is called:", 
+        questionTa: "மோல்டிங் மணலை (moulding sand) வைத்திருக்கப் பயன்படும் பெட்டி எவ்வாறு அழைக்கப்படுகிறது?",
+        options: ["a) Hopper", "b) Cope and drag", "c) Furnace", "d) Ladle"], 
+        optionsTa: ["ஹாப்பர்", "கோப் மற்றும் டிராக் (Cope and drag)", "உலை (Furnace)", "லேடில் (Ladle)"],
+        correct: "b", 
+        explanation: "a) Hopper: Used to store sand.\nc) Furnace: Used to melt metal.\nd) Ladle: Used to pour molten metal.",
+        vocab: [
+            { word: "Cope and drag", pron: "கோப் அண்ட் டிராக்", mean: "மேல் மற்றும் கீழ் அச்சுப் பெட்டிகள்" }
+        ]
+    },
+    { 
+        unit: "Unit – I: FOUNDRY TECHNOLOGY", qIndex: 5, 
+        question: "5. The tool used for ramming sand in mould is:", 
+        questionTa: "அச்சில் மணலை இறுக்கப் (ramming) பயன்படும் கருவி எது?",
+        options: ["a) Rammer", "b) Strike-off bar", "c) Riddle", "d) Trowel"], 
+        optionsTa: ["ராம்மர் (Rammer)", "ஸ்ட்ரைக்-ஆஃப் பார்", "சல்லடை (Riddle)", "டிராவல் (Trowel)"],
+        correct: "a", 
+        explanation: "b) Strike-off bar: Used to level the sand surface.\nc) Riddle: Used to sieve sand.\nd) Trowel: Used for finishing and repairing the mould.",
+        vocab: [
+            { word: "Ramming", pron: "ராம்மிங்", mean: "மணலை இறுக்குதல் அல்லது அடித்தல்" },
+            { word: "Rammer", pron: "ராம்மர்", mean: "மணலை இறுக்கும் கருவி" }
+        ]
+    },
+    { unit: "Unit – I: FOUNDRY TECHNOLOGY", qIndex: 6, question: "6. The property of moulding sand that allows gases to pass through is:", options: ["a) Cohesiveness", "b) Permeability", "c) Adhesiveness", "d) Collapsibility"], correct: "b", explanation: "Permeability allows gases to escape, preventing blowholes." },
+    { unit: "Unit – I: FOUNDRY TECHNOLOGY", qIndex: 7, question: "7. The function of a core in moulding is to:", options: ["a) Provide internal cavities", "b) Provide external shape", "c) Support the mould box", "d) Increase cooling rate"], correct: "a", explanation: "Cores create internal voids and holes in the final casting." },
+    { unit: "Unit – I: FOUNDRY TECHNOLOGY", qIndex: 8, question: "8. Non-ferrous metals such as aluminum are melted in:", options: ["a) Cupola furnace", "b) Blast furnace", "c) Crucible furnace", "d) Open hearth furnace"], correct: "c", explanation: "Crucible furnaces are standard for small batch non-ferrous melting." },
+    { unit: "Unit – I: FOUNDRY TECHNOLOGY", qIndex: 9, question: "9. In a crucible furnace, metal is melted in:", options: ["a) Crucible pot", "b) Hearth", "c) Lining", "d) Chamber"], correct: "a", explanation: "The crucible pot itself holds and heats the metal." },
+    { unit: "Unit – I: FOUNDRY TECHNOLOGY", qIndex: 10, question: "10. The energy source for an electric arc furnace is:", options: ["a) Coal", "b) Oil", "c) Gas", "d) Electricity"], correct: "d", explanation: "Electric arc furnaces use electrical currents." },
+    { unit: "Unit – I: FOUNDRY TECHNOLOGY", qIndex: 11, question: "11. Casting is a process of:", options: ["a) Forging metal", "b) Rolling metal sheets", "c) Pouring molten metal into a mould and solidifying", "d) Welding two parts"], correct: "c", explanation: "Casting relies on liquid metal taking the shape of a mold." },
+    { unit: "Unit – I: FOUNDRY TECHNOLOGY", qIndex: 12, question: "12. Green sand in sand casting means:", options: ["a) Sand with moisture", "b) Sand of green color", "c) Dry sand mixed with clay", "d) Sand with chemicals"], correct: "a", explanation: "Green implies the sand is moist (has not been baked dry)." },
+    { unit: "Unit – I: FOUNDRY TECHNOLOGY", qIndex: 13, question: "13. In gravity die casting, molten metal enters the mould:", options: ["a) By suction", "b) By pressure", "c) By centrifugal force", "d) By gravity alone"], correct: "d", explanation: "The metal flows purely under the force of gravity." },
+    { unit: "Unit – I: FOUNDRY TECHNOLOGY", qIndex: 14, question: "14. Pressure die casting is used for:", options: ["a) Large castings", "b) Open mould castings", "c) Small, precise castings", "d) Sand moulds"], correct: "c", explanation: "High pressure allows rapid filling of complex, precise small shapes." },
+    { unit: "Unit – I: FOUNDRY TECHNOLOGY", qIndex: 15, question: "15. In hot chamber die casting, the metal is:", options: ["a) Melted inside the casting machine", "b) Brought from outside furnace", "c) Heated by centrifugal force", "d) Cooled quickly"], correct: "a", explanation: "The melting pot is integral to the machine in the hot chamber process." },
+    { unit: "Unit – I: FOUNDRY TECHNOLOGY", qIndex: 16, question: "16. The casting process best suited for hollow cylindrical parts is:", options: ["a) Die casting", "b) Centrifugal casting", "c) Continuous casting", "d) Sand casting"], correct: "b", explanation: "Centrifugal force pushes metal to the walls, leaving a hollow center naturally." },
+    { unit: "Unit – I: FOUNDRY TECHNOLOGY", qIndex: 17, question: "17. In centrifugal casting, the driving force is:", options: ["a) Pressure", "b) Gravity", "c) Centrifugal force", "d) Suction"], correct: "c", explanation: "Centrifugal force is generated by spinning the mold." },
+    { unit: "Unit – I: FOUNDRY TECHNOLOGY", qIndex: 18, question: "18. A major advantage of continuous casting is:", options: ["a) Better machining allowance", "b) No mould needed", "c) No heat required", "d) Continuous production without ingots"], correct: "d", explanation: "It bypasses the ingot stage entirely." },
+    { unit: "Unit – I: FOUNDRY TECHNOLOGY", qIndex: 19, question: "19. Cold shut occurs when:", options: ["a) Two streams of molten metal do not fuse properly", "b) Sand particles mix with metal", "c) Mould collapses", "d) Casting cracks during cooling"], correct: "a", explanation: "Metal cools too much before streams meet, failing to merge." },
+    { unit: "Unit – I: FOUNDRY TECHNOLOGY", qIndex: 20, question: "20. The process of removing gates, risers, and excess metal is called:", options: ["a) Fettling", "b) Pouring", "c) Ramming", "d) Moulding"], correct: "a", explanation: "Fettling is the post-casting cleanup process." },
+    
+    // UNIT II
+    { unit: "Unit – II: WELDING TECHNOLOGY", qIndex: 21, question: "1. Welding is a process of:", options: ["a) Joining two metals by mechanical fastening", "b) Joining two metals by fusion with or without filler", "c) Cutting metals into pieces", "d) Casting metals into moulds"], correct: "b", explanation: "Welding creates a permanent joint via fusion." },
+    { unit: "Unit – II: WELDING TECHNOLOGY", qIndex: 22, question: "2. Arc welding uses heat generated by:", options: ["a) Chemical reaction", "b) Gas combustion", "c) Electric arc between electrode and workpiece", "d) Frictional heat"], correct: "c", explanation: "The electrical arc provides the localized extreme heat." },
+    { unit: "Unit – II: WELDING TECHNOLOGY", qIndex: 23, question: "3. The power source used in arc welding can be:", options: ["a) Transformer", "b) Battery", "c) Engine", "d) Inverter"], correct: "a", explanation: "Transformers step down voltage and step up current for welding." },
+    { unit: "Unit – II: WELDING TECHNOLOGY", qIndex: 24, question: "4. The flux covering on electrodes in arc welding mainly provides:", options: ["a) Mechanical strength", "b) Electrical insulation", "c) Cooling effect", "d) Arc stability and shielding gas"], correct: "d", explanation: "Flux burns to create a protective gas shield and stabilizes the arc." },
+    { unit: "Unit – II: WELDING TECHNOLOGY", qIndex: 25, question: "5. The most commonly used arc welding method in industries is:", options: ["a) Carbon arc welding", "b) Metal arc welding", "c) Gas welding", "d) Friction welding"], correct: "b", explanation: "Metal arc welding (SMAW/MIG) is the industrial standard." },
+    { unit: "Unit – II: WELDING TECHNOLOGY", qIndex: 26, question: "6. In MIG welding, the term MIG stands for:", options: ["a) Metal Inert Gas", "b) Metal Internal Gas", "c) Mechanical Inert Gas", "d) Molten Inert Graphite"], correct: "a", explanation: "Metal Inert Gas uses a continuously fed wire and inert shielding." },
+    { unit: "Unit – II: WELDING TECHNOLOGY", qIndex: 27, question: "7. The shielding gas used in TIG welding is commonly:", options: ["a) Oxygen", "b) Carbon dioxide", "c) Hydrogen", "d) Argon"], correct: "d", explanation: "Argon is a non-reactive inert gas ideal for TIG." },
+    { unit: "Unit – II: WELDING TECHNOLOGY", qIndex: 28, question: "8. TIG welding gives:", options: ["a) Excellent quality, precision welds", "b) High welding speed, less control", "c) Poor weld quality", "d) Welding only for cast iron"], correct: "a", explanation: "TIG allows extreme control, leading to high-quality precise joints." },
+    { unit: "Unit – II: WELDING TECHNOLOGY", qIndex: 29, question: "9. The reducing (carburizing) flame in gas welding is used for:", options: ["a) Stainless steel", "b) Aluminum and nickel", "c) Cutting", "d) Cast iron"], correct: "b", explanation: "Excess acetylene prevents oxidation on reactive metals." },
+    { unit: "Unit – II: WELDING TECHNOLOGY", qIndex: 30, question: "10. The neutral flame in oxy-acetylene welding is best suited for:", options: ["a) Cast iron and mild steel", "b) Brass and bronze", "c) Cutting operations", "d) Plastics"], correct: "a", explanation: "A neutral flame won't add carbon or oxygen to mild steel." },
+    { unit: "Unit – II: WELDING TECHNOLOGY", qIndex: 31, question: "11. Spot welding is preferred for sheet metals because:", options: ["a) It requires no filler metal", "b) It needs less operator skill", "c) It gives localized joints quickly", "d) It uses less power"], correct: "c", explanation: "Quick, localized clamping is perfect for thin sheets." },
+    { unit: "Unit – II: WELDING TECHNOLOGY", qIndex: 32, question: "12. Seam welding is widely used in fuel tanks and drums because:", options: ["a) It requires no electrodes", "b) It saves more material", "c) It is cheaper than spot welding", "d) It provides leak-proof continuous welds"], correct: "d", explanation: "Overlapping spots create a hermetic seal." },
+    { unit: "Unit – II: WELDING TECHNOLOGY", qIndex: 33, question: "13. Soldering is weaker than brazing because:", options: ["a) It uses cheaper electrodes", "b) Solder has low melting point and strength", "c) It requires high temperature", "d) It is performed in vacuum"], correct: "b", explanation: "Lead/tin alloys used in soldering are inherently soft and weak." },
+    { unit: "Unit – II: WELDING TECHNOLOGY", qIndex: 34, question: "14. Destructive tests are avoided in production because:", options: ["a) The specimen is damaged permanently", "b) They take more time", "c) They are inaccurate", "d) They use expensive machines"], correct: "a", explanation: "You cannot sell a destroyed part." },
+    { unit: "Unit – II: WELDING TECHNOLOGY", qIndex: 35, question: "15. Radiography is useful for detecting:", options: ["a) External porosity only", "b) Hardness variation", "c) Internal defects like voids and blowholes", "d) Surface roughness"], correct: "c", explanation: "X-rays penetrate the metal to see inside." },
+    { unit: "Unit – II: WELDING TECHNOLOGY", qIndex: 36, question: "16. Slag inclusion defects can be avoided by:", options: ["a) Using smaller electrodes", "b) Cleaning each weld pass properly", "c) Applying more current", "d) Using less flux"], correct: "b", explanation: "Slag left behind gets trapped by the next layer." },
+    { unit: "Unit – II: WELDING TECHNOLOGY", qIndex: 37, question: "17. Arc eye or eye injuries in welding occur mainly because:", options: ["a) Dust enters the eye", "b) Sparks hit the face", "c) Helmet is too heavy", "d) UV rays from arc damage the retina"], correct: "d", explanation: "The electric arc acts like miniature sun, emitting damaging UV." },
+    { unit: "Unit – II: WELDING TECHNOLOGY", qIndex: 38, question: "18. Heat in resistance welding is produced due to:", options: ["a) Electrical resistance", "b) Chemical reaction", "c) Gas flame", "d) Mechanical pressure"], correct: "a", explanation: "The metal's resistance to heavy current flow generates heat (I²R)." },
+    { unit: "Unit – II: WELDING TECHNOLOGY", qIndex: 39, question: "19. Electrodes used in resistance welding are usually made of:", options: ["a) Steel", "b) Copper alloys", "c) Aluminum", "d) Cast iron"], correct: "b", explanation: "Copper conducts well but resists melting at the interface." },
+    { unit: "Unit – II: WELDING TECHNOLOGY", qIndex: 40, question: "20. Hard facing is used to:", options: ["a) Improve wear resistance", "b) Reduce hardness", "c) Reduce welding current", "d) Save electrodes"], correct: "a", explanation: "A hard layer is welded on top to protect against abrasion." },
+    
+    // UNIT III
+    { unit: "Unit – III: FORGING AND PRESS WORKING", qIndex: 41, question: "1. Hot working is generally done:", options: ["a) Below recrystallization temperature", "b) At room temperature", "c) Below 0°C", "d) Above recrystallization temperature"], correct: "d", explanation: "Above recrystallization, the metal doesn't work-harden." },
+    { unit: "Unit – III: FORGING AND PRESS WORKING", qIndex: 42, question: "2. Hot working improves:", options: ["a) Machinability", "b) Thermal conductivity", "c) Ductility and toughness", "d) Electrical resistance"], correct: "c", explanation: "It refines grains and heals internal porosity." },
+    { unit: "Unit – III: FORGING AND PRESS WORKING", qIndex: 43, question: "3. The process of reducing thickness of metal by passing between rolls is:", options: ["a) Forging", "b) Rolling", "c) Extrusion", "d) Drawing"], correct: "b", explanation: "Rolling pinches the metal flat between large cylinders." },
+    { unit: "Unit – III: FORGING AND PRESS WORKING", qIndex: 44, question: "4. Hot working removes:", options: ["a) Blow holes and porosity", "b) Surface cracks", "c) Rust only", "d) Scale only"], correct: "a", explanation: "The extreme pressure welds internal voids shut." },
+    { unit: "Unit – III: FORGING AND PRESS WORKING", qIndex: 45, question: "5. The forging operation that increases length and reduces cross-section is:", options: ["a) Drawing out", "b) Upsetting", "c) Piercing", "d) Bending"], correct: "a", explanation: "Drawing stretches the metal longer." },
+    { unit: "Unit – III: FORGING AND PRESS WORKING", qIndex: 46, question: "6. Press forging gives better dimensional accuracy than hammer forging because:", options: ["a) It uses dies with no impact load", "b) It requires less heating", "c) It applies slow, continuous pressure", "d) It uses lighter machines"], correct: "c", explanation: "Slow pressure ensures metal flows deeply into every corner of the die." },
+    { unit: "Unit – III: FORGING AND PRESS WORKING", qIndex: 47, question: "7. Upset forging is widely used in bolt head making because:", options: ["a) It increases diameter by shortening the length", "b) It reduces diameter by lengthening the section", "c) It improves toughness by slow cooling rate", "d) It enhances ductility without heat treatment"], correct: "a", explanation: "Smashing the end makes it bulge outwards, creating a head." },
+    { unit: "Unit – III: FORGING AND PRESS WORKING", qIndex: 48, question: "8. Press forging ensures better accuracy than hammer forging since:", options: ["a) It applies slow continuous pressure on the work", "b) It strikes repeated high-speed blows on metal", "c) It heats the work uniformly in small furnaces", "d) It allows rolling action between two shaped dies"], correct: "a", explanation: "Impacts can bounce; slow pressure forces full die conformity." },
+    { unit: "Unit – III: FORGING AND PRESS WORKING", qIndex: 49, question: "9. Roll forging is mostly used for axles and rods because:", options: ["a) The hammer blows distribute heat uniformly", "b) The dies are kept open to allow free expansion", "c) The operation is carried out at room temperature", "d) The shaped rolls gradually reduce cross-section"], correct: "d", explanation: "It efficiently creates tapered or long parts." },
+    { unit: "Unit – III: FORGING AND PRESS WORKING", qIndex: 50, question: "10. Forged components are stronger than castings due to:", options: ["a) The melting process reduces internal porosity", "b) The cooling rate makes grains finer and harder", "c) The grain flow follows the overall shape of part", "d) The machining removes defects from the surface"], correct: "c", explanation: "Oriented grain structures act like wood grain, adding immense strength." },
+    { unit: "Unit – III: FORGING AND PRESS WORKING", qIndex: 51, question: "11. A press in which power is transmitted by a crankshaft is called:", options: ["a) Mechanical press", "b) Hydraulic press", "c) Pneumatic press", "d) Screw press"], correct: "a", explanation: "Crankshafts are purely mechanical linkages." },
+    { unit: "Unit – III: FORGING AND PRESS WORKING", qIndex: 52, question: "12. The press working operation used to bend sheet into angles is:", options: ["a) Curling", "b) Drawing", "c) Angle bending", "d) Shearing"], correct: "c", explanation: "Angle bending specifically folds the metal to an angle." },
+    { unit: "Unit – III: FORGING AND PRESS WORKING", qIndex: 53, question: "13. The operation in which the edge of the sheet is rolled into a circle is known as:", options: ["a) Notching", "b) Piercing", "c) Shaving", "d) Curling"], correct: "d", explanation: "Curling eliminates sharp edges and adds rigidity." },
+    { unit: "Unit – III: FORGING AND PRESS WORKING", qIndex: 54, question: "14. The operation in which a desired shape is completely cut from the sheet is called:", options: ["a) Piercing", "b) Blanking", "c) Notching", "d) Trimming"], correct: "b", explanation: "In blanking, the punched-out piece is the product." },
+    { unit: "Unit – III: FORGING AND PRESS WORKING", qIndex: 55, question: "15. The operation in which holes are punched without removing material is:", options: ["a) Lancing", "b) Shaving", "c) Trimming", "d) Curling"], correct: "a", explanation: "Lancing cuts and bends but leaves the flap attached." },
+    { unit: "Unit – III: FORGING AND PRESS WORKING", qIndex: 56, question: "16. A mechanical press is more suitable for blanking because:", options: ["a) It applies uniform pressure throughout stroke", "b) It reduces burrs on pierced holes", "c) It delivers high-speed strokes for cutting", "d) It requires less heating of the sheet"], correct: "c", explanation: "Blanking requires a rapid shearing shock." },
+    { unit: "Unit – III: FORGING AND PRESS WORKING", qIndex: 57, question: "17. A hydraulic press is preferred for deep drawing because:", options: ["a) It consumes less power in shearing", "b) It provides steady pressure during stroke", "c) It avoids spring back during bending", "d) It works at higher speed than mechanical press"], correct: "b", explanation: "Drawing takes time to stretch the metal without tearing." },
+    { unit: "Unit – III: FORGING AND PRESS WORKING", qIndex: 58, question: "18. Angle bending is mainly used to:", options: ["a) Form simple L or V shapes in sheets", "b) Avoid cracks during trimming", "c) Reduce thickness of sheet edges", "d) Remove burrs after piercing holes"], correct: "a", explanation: "Bends transform flat sheets into structural shapes." },
+    { unit: "Unit – III: FORGING AND PRESS WORKING", qIndex: 59, question: "19. Curling operation is carried out to:", options: ["a) Improve tensile strength of sheets", "b) Eliminate sharp sheet edges by rolling", "c) Increase sheet hardness by pressing", "d) Avoid cracks during lancing process"], correct: "b", explanation: "Rolled edges are safe to touch and stiffer." },
+    { unit: "Unit – III: FORGING AND PRESS WORKING", qIndex: 60, question: "20. Blanking and piercing differ in that:", options: ["a) In blanking, sheet edges remain scrap; in piercing, edges are product", "b) In blanking, dies are smaller than in piercing", "c) In blanking, more power is needed than piercing", "d) In blanking, the cut part is product; in piercing, the hole is product"], correct: "d", explanation: "This is the fundamental definition distinction between the two." },
+
+    // UNIT IV
+    { unit: "Unit – IV: POWDER METALLURGY AND HEAT TREATMENT", qIndex: 61, question: "1. First step in powder metallurgy is:", options: ["a) Sintering", "b) Compacting", "c) Powder production", "d) Sizing"], correct: "c", explanation: "You must have powder before doing anything else." },
+    { unit: "Unit – IV: POWDER METALLURGY AND HEAT TREATMENT", qIndex: 62, question: "2. In powder metallurgy, which method is most widely used to produce metal powders?", options: ["a) Chemical reduction", "b) Atomization", "c) Electrolysis", "d) Mechanical pulverization"], correct: "b", explanation: "Atomization spraying handles large quantities efficiently." },
+    { unit: "Unit – IV: POWDER METALLURGY AND HEAT TREATMENT", qIndex: 63, question: "3. Purpose of sizing is:", options: ["a) Powder production", "b) Improve dimensional accuracy", "c) Mixing particles", "d) Increase powder flow"], correct: "b", explanation: "Sizing is a secondary pressing to achieve exact tolerances." },
+    { unit: "Unit – IV: POWDER METALLURGY AND HEAT TREATMENT", qIndex: 64, question: "4. In atomization, metal powder is produced by:", options: ["a) Reducing metal oxides", "b) Spraying molten metal with gas or water jets", "c) Breaking solid metal", "d) Electroplating"], correct: "b", explanation: "High pressure jets break the liquid metal into droplets that freeze into powder." },
+    { unit: "Unit – IV: POWDER METALLURGY AND HEAT TREATMENT", qIndex: 65, question: "5. Which of the following produces the highest purity metal powders?", options: ["a) Atomization", "b) Reduction", "c) Electrolysis", "d) Milling"], correct: "c", explanation: "Electrolysis separates pure metal atoms from a chemical bath." },
+    { unit: "Unit – IV: POWDER METALLURGY AND HEAT TREATMENT", qIndex: 66, question: "6. Reduction process involves:", options: ["a) Adding oxygen to oxides", "b) Reducing metal oxides using gases", "c) Melting and pouring", "d) Forging into shape"], correct: "b", explanation: "Carbon or hydrogen is used to strip oxygen away from ore powder." },
+    { unit: "Unit – IV: POWDER METALLURGY AND HEAT TREATMENT", qIndex: 67, question: "7. The product obtained after compaction but before sintering is called:", options: ["a) Finished part", "b) Sintered part", "c) Porous product", "d) Green compact"], correct: "d", explanation: "Green means it is fragile and unfinished." },
+    { unit: "Unit – IV: POWDER METALLURGY AND HEAT TREATMENT", qIndex: 68, question: "8. Which of the following is a typical use for powder metallurgy in the automotive industry?", options: ["a) Brake rotors", "b) Crankshafts", "c) Pistons", "d) Bearings"], correct: "d", explanation: "Porous sintered bearings can hold oil." },
+    { unit: "Unit – IV: POWDER METALLURGY AND HEAT TREATMENT", qIndex: 69, question: "9. Self-lubricating parts are made by:", options: ["a) Forging", "b) Extrusion", "c) Powder metallurgy with porosity", "d) Welding"], correct: "c", explanation: "Controlled porosity acts as an oil reservoir." },
+    { unit: "Unit – IV: POWDER METALLURGY AND HEAT TREATMENT", qIndex: 70, question: "10. Hot pressing combines:", options: ["a) Melting and atomizing", "b) Compaction and sintering", "c) Electrolysis and infiltration", "d) Milling and forging"], correct: "b", explanation: "Pressure and heat are applied simultaneously." },
+    { unit: "Unit – IV: POWDER METALLURGY AND HEAT TREATMENT", qIndex: 71, question: "11. Heat treatment is done primarily to:", options: ["a) Melt the metal", "b) Change chemical composition", "c) Improve mechanical properties", "d) Change color"], correct: "c", explanation: "It alters the internal grain structure to change hardness/toughness." },
+    { unit: "Unit – IV: POWDER METALLURGY AND HEAT TREATMENT", qIndex: 72, question: "12. Which property is improved by heat treatment?", options: ["a) Printability", "b) Transparency", "c) Hardness", "d) Gloss"], correct: "c", explanation: "Hardening is a primary heat treatment objective." },
+    { unit: "Unit – IV: POWDER METALLURGY AND HEAT TREATMENT", qIndex: 73, question: "13. What is the primary purpose of the annealing process in heat treatment?", options: ["a) To increase hardness", "b) To remove internal stresses and soften the material", "c) To improve wear resistance", "d) To refine grain structure and make the material brittle"], correct: "b", explanation: "Annealing makes metal soft and ductile again." },
+    { unit: "Unit – IV: POWDER METALLURGY AND HEAT TREATMENT", qIndex: 74, question: "14. What effect does the normalizing process have on the grain structure of a material?", options: ["a) It refines the grain structure", "b) It coarsens the grain structure", "c) It eliminates grain boundaries", "d) It causes no change in the grain structure"], correct: "a", explanation: "Air cooling normalizes and refines the internal structure uniformly." },
+    { unit: "Unit – IV: POWDER METALLURGY AND HEAT TREATMENT", qIndex: 75, question: "15. What is the purpose of tempering the steel?", options: ["a) To reduce the brittleness", "b) To remove the ductility", "c) To increase the hardness", "d) To increase the brittleness"], correct: "a", explanation: "Tempering slightly reheats a quenched part to trade some hardness for toughness." },
+    { unit: "Unit – IV: POWDER METALLURGY AND HEAT TREATMENT", qIndex: 76, question: "16. The iron-carbon equilibrium diagram shows relationship between:", options: ["a) Oxygen and iron", "b) Iron and carbon", "c) Hydrogen and carbon", "d) Steel and aluminum"], correct: "b", explanation: "The name directly specifies Iron and Carbon." },
+    { unit: "Unit – IV: POWDER METALLURGY AND HEAT TREATMENT", qIndex: 77, question: "17. Pearlite is a mixture of:", options: ["a) Iron and carbon", "b) Austenite and ferrite", "c) Ferrite and cementite", "d) Graphite and carbide"], correct: "c", explanation: "It is a layered lamellar structure of soft ferrite and hard cementite." },
+    { unit: "Unit – IV: POWDER METALLURGY AND HEAT TREATMENT", qIndex: 78, question: "18. The eutectoid point occurs at:", options: ["a) 1130°C", "b) 723°C", "c) 912°C", "d) 600°C"], correct: "b", explanation: "723°C is the critical temperature where Austenite turns into Pearlite." },
+    { unit: "Unit – IV: POWDER METALLURGY AND HEAT TREATMENT", qIndex: 79, question: "19. Which of the following form of iron is magnetic in nature?", options: ["a) α (Alpha)", "b) β (Beta)", "c) γ (Gamma)", "d) δ (Delta)"], correct: "a", explanation: "Alpha iron (ferrite) is ferromagnetic." },
+    { unit: "Unit – IV: POWDER METALLURGY AND HEAT TREATMENT", qIndex: 80, question: "20. Which medium is fastest for quenching?", options: ["a) Air", "b) Water", "c) Oil", "d) Salt bath"], correct: "b", explanation: "Water extracts heat much faster than oil or air." },
+
+    // UNIT V
+    { unit: "Unit – V: WORK HOLDING, TOOL HOLDING DEVICES AND POWER TOOLS", qIndex: 81, question: "1. Identify the device used to hold irregularly shaped workpieces on a lathe.", options: ["a) Steady rest", "b) Faceplate", "c) Chuck", "d) Mandrel"], correct: "b", explanation: "Faceplates allow complex clamping using bolts and angle plates." },
+    { unit: "Unit – V: WORK HOLDING, TOOL HOLDING DEVICES AND POWER TOOLS", qIndex: 82, question: "2. Which of the following is used to hold a job between centers on a lathe?", options: ["a) Drive plate and carrier", "b) Chuck", "c) Mandrel", "d) Angle plate"], correct: "a", explanation: "A carrier (dog) transfers rotation from the drive plate to the shaft." },
+    { unit: "Unit – V: WORK HOLDING, TOOL HOLDING DEVICES AND POWER TOOLS", qIndex: 83, question: "3. Name the device used to support long slender workpieces during turning.", options: ["a) Tailstock", "b) Steady rest", "c) Mandrel", "d) Chuck"], correct: "b", explanation: "A steady rest prevents the middle of the shaft from bowing away from the tool." },
+    { unit: "Unit – V: WORK HOLDING, TOOL HOLDING DEVICES AND POWER TOOLS", qIndex: 84, question: "4. The power tool used to tighten or loosen nuts and bolts quickly is:", options: ["a) Circular saw", "b) Impact wrench", "c) Jigsaw", "d) Chainsaw"], correct: "b", explanation: "Impact wrenches use rotary blows for high torque." },
+    { unit: "Unit – V: WORK HOLDING, TOOL HOLDING DEVICES AND POWER TOOLS", qIndex: 85, question: "5. Why is a steady rest required in lathe operations?", options: ["a) To increase cutting speed", "b) To support long workpieces", "c) To reduce tool wear", "d) To hold small parts"], correct: "b", explanation: "Without support, long work bends or chatters." },
+    { unit: "Unit – V: WORK HOLDING, TOOL HOLDING DEVICES AND POWER TOOLS", qIndex: 86, question: "6. A mandrel is primarily used for:", options: ["a) External turning", "b) Internal grinding", "c) Holding hollow workpieces", "d) Supporting centers"], correct: "c", explanation: "It slides inside a hole so the outside can be machined concentric." },
+    { unit: "Unit – V: WORK HOLDING, TOOL HOLDING DEVICES AND POWER TOOLS", qIndex: 87, question: "7. Which device provides precise angular indexing for machining operations?", options: ["a) Tailstock", "b) Drill chuck", "c) Faceplate", "d) Indexing head"], correct: "d", explanation: "Indexing heads use worm gears to mathematically divide circles." },
+    { unit: "Unit – V: WORK HOLDING, TOOL HOLDING DEVICES AND POWER TOOLS", qIndex: 88, question: "8. Which tool holds small round workpieces with high concentric accuracy?", options: ["a) Four-jaw chuck", "b) Faceplate", "c) Magnetic chuck", "d) Collet"], correct: "d", explanation: "Collets wrap completely around the part for extreme precision." },
+    { unit: "Unit – V: WORK HOLDING, TOOL HOLDING DEVICES AND POWER TOOLS", qIndex: 89, question: "9. The function of a turret indexing mechanism is to:", options: ["a) Rotate workpiece", "b) Change cutting tools quickly", "c) Hold cutting fluids", "d) Control feed rate"], correct: "b", explanation: "A turret rotates pre-loaded tools into position rapidly." },
+    { unit: "Unit – V: WORK HOLDING, TOOL HOLDING DEVICES AND POWER TOOLS", qIndex: 90, question: "10. The function of an indexing head is:", options: ["a) To control depth of cut", "b) To rotate the workpiece by a precise angle", "c) To grip tool", "d) To remove chips"], correct: "b", explanation: "Essential for milling gears or splines." },
+    { unit: "Unit – V: WORK HOLDING, TOOL HOLDING DEVICES AND POWER TOOLS", qIndex: 91, question: "11. The difference between steady rest and follower rest is:", options: ["a) Steady rest supports near the tool, follower rest moves with tool", "b) Steady rest moves, follower rest fixed", "c) Both are same", "d) None of the above"], correct: "a", explanation: "Follower rest bolts to the carriage; steady rest bolts to the bed." },
+    { unit: "Unit – V: WORK HOLDING, TOOL HOLDING DEVICES AND POWER TOOLS", qIndex: 92, question: "12. A catch plate is used with:", options: ["a) Mandrel", "b) Chuck", "c) Steady rest", "d) Vice"], correct: "a", explanation: "It drives the lathe dog holding the mandrel." },
+    { unit: "Unit – V: WORK HOLDING, TOOL HOLDING DEVICES AND POWER TOOLS", qIndex: 93, question: "13. Identify the device used for accurate angular positioning of workpiece.", options: ["a) Indexing head", "b) Mandrel", "c) Chuck", "d) Faceplate"], correct: "a", explanation: "The defining purpose of an indexing head." },
+    { unit: "Unit – V: WORK HOLDING, TOOL HOLDING DEVICES AND POWER TOOLS", qIndex: 94, question: "14. The function of a four-way tool post is:", options: ["a) Hold four workpieces", "b) Hold and change tools quickly", "c) Hold centers", "d) Support tailstock"], correct: "b", explanation: "Allows four tools to be mounted and indexed manually." },
+    { unit: "Unit – V: WORK HOLDING, TOOL HOLDING DEVICES AND POWER TOOLS", qIndex: 95, question: "15. The advantage of using collets over chucks is:", options: ["a) Higher accuracy and speed", "b) Low cost", "c) Heavy-duty work", "d) Manual operation"], correct: "a", explanation: "Collets center perfectly and tighten extremely fast." },
+    { unit: "Unit – V: WORK HOLDING, TOOL HOLDING DEVICES AND POWER TOOLS", qIndex: 96, question: "16. Select the proper device to machine a long shaft with minimum deflection.", options: ["a) Steady rest", "b) Mandrel", "c) Faceplate", "d) Chuck"], correct: "a", explanation: "Steady rest prevents the long shaft from bending." },
+    { unit: "Unit – V: WORK HOLDING, TOOL HOLDING DEVICES AND POWER TOOLS", qIndex: 97, question: "17. Choose the correct tool-holding device for drilling multiple holes at different angles.", options: ["a) Adapter", "b) Turret", "c) Arbor", "d) Collet"], correct: "d", explanation: "Collets safely hold straight-shank drills." },
+    { unit: "Unit – V: WORK HOLDING, TOOL HOLDING DEVICES AND POWER TOOLS", qIndex: 98, question: "18. If a job must be turned between centers, which setup should be used?", options: ["a) Drive plate + carrier", "b) Chuck only", "c) Mandrel", "d) V-block"], correct: "a", explanation: "The drive plate spins the carrier which spins the part." },
+    { unit: "Unit – V: WORK HOLDING, TOOL HOLDING DEVICES AND POWER TOOLS", qIndex: 99, question: "19. To machine a component requiring equal divisions, which device is suitable?", options: ["a) Indexing head", "b) Vice", "c) Angle plate", "d) Mandrel"], correct: "a", explanation: "Indexing mathematically spaces out cuts (like gear teeth)." },
+    { unit: "Unit – V: WORK HOLDING, TOOL HOLDING DEVICES AND POWER TOOLS", qIndex: 100, question: "20. For grinding or drilling operations requiring firm grip and precision, use:", options: ["a) Collet chuck", "b) Magnetic chuck", "c) Drill sleeve", "d) V-block"], correct: "a", explanation: "Collets provide 360-degree gripping force." }
+];
+
+function handleOptionSelect(qIndex) {
+    const selected = document.querySelector(`input[name="q_${qIndex}"]:checked`);
+    if (selected) {
+        userAnswers[qIndex] = selected.value;
+    }
+}
+
+function renderCurrentUnit() {
+    const currentUnitName = units[currentUnitIndex];
+    document.getElementById("unit-badge").innerText = currentUnitName;
+    const container = document.getElementById("questions-holder");
+    container.innerHTML = "";
+    
+    const filteredQuestions = quizData.filter(q => q.unit === currentUnitName);
+    
+    filteredQuestions.forEach((q) => {
+        const card = document.createElement("div");
+        card.className = "card";
+        
+        const cleanQuestion = cleanLanguageText(q.question);
+        let html = `<div class="q-header">${q.question}</div>`;
+
+        // Inject Question Tamil Meaning / Pronunciation
+        if (showMeanings) {
+            html += languageLineHTML("meaning", cleanQuestion, q.questionTa || "");
+        }
+        if (showPronunciation) {
+            html += languageLineHTML("pronunciation", cleanQuestion, "");
+        }
+
+        html += `<ul class="options-list">`;
+        
+        q.options.forEach((opt, idx) => {
+            const letter = String.fromCharCode(97 + idx); // 'a', 'b', 'c', 'd'
+            const isChecked = userAnswers[q.qIndex] === letter ? "checked" : "";
+            const cleanOpt = cleanLanguageText(opt);
+            const fixedOptTa = (q.optionsTa && q.optionsTa[idx]) ? cleanLanguageText(q.optionsTa[idx]) : "";
+
+            html += `
+            <li>
+                <label class="option-label">
+                    <div class="option-main">
+                        <input type="radio" name="q_${q.qIndex}" value="${letter}" ${isChecked} onchange="handleOptionSelect(${q.qIndex})">
+                        <span>${opt}</span>
+                    </div>`;
+            
+            // Inject Options Tamil Meaning / Pronunciation
+            if (showMeanings) {
+                html += languageLineHTML("meaning", cleanOpt, fixedOptTa);
+            }
+            if (showPronunciation) {
+                html += languageLineHTML("pronunciation", cleanOpt, "");
+            }
+            
+            html += `</label></li>`;
+        });
+        
+        html += `</ul>`;
+
+        // Generate Vocabulary/Pronunciation HTML if vocab exists for this question
+        if (q.vocab && q.vocab.length > 0) {
+            let termsHTML = q.vocab.map(v => `
+                <div class="vocab-item">
+                    <span class="vocab-en">ஆங்கிலம்: ${v.word}</span><br>
+                    <span class="vocab-pron">தமிழ் உச்சரிப்பு (Pronunciation): ${v.pron}</span><br>
+                    <div class="vocab-mean">தமிழ் பொருள் (Meaning): ${v.mean}</div>
+                </div>
+            `).join('');
+            
+            // Display depends on the Red button toggle state
+            const vocabDisplay = showPronunciation ? "block" : "none";
+
+            html += `
+                <div class="vocab-content" style="display: ${vocabDisplay};">
+                    <div class="vocab-title">🗣️ தொழில்நுட்பச் சொற்கள் (Technical Words)</div>
+                    ${termsHTML}
+                </div>
+            `;
+        }
+
+        card.innerHTML = html;
+        container.appendChild(card);
+    });
+
+    const nextBtn = document.getElementById("next-btn");
+    if (currentUnitIndex === units.length - 1) {
+        nextBtn.innerHTML = "Submit & View Final Results ✓";
+    } else {
+        nextBtn.innerHTML = "Next Unit →";
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // Trigger API calls for the visible placeholders
+    if (showMeanings || showPronunciation) {
+        processLanguageLines();
+    }
+}
+
+function processUnit() {
+    const currentUnitName = units[currentUnitIndex];
+    const filteredQuestions = quizData.filter(q => q.unit === currentUnitName);
+    
+    // Save answers explicitly on Next
+    filteredQuestions.forEach((q) => {
+        const selected = document.querySelector(`input[name="q_${q.qIndex}"]:checked`);
+        if (selected) {
+            userAnswers[q.qIndex] = selected.value;
+        }
+    });
+
+    if (currentUnitIndex < units.length - 1) {
+        currentUnitIndex++;
+        renderCurrentUnit();
+    } else {
+        showResults();
+    }
+}
+
+function showResults() {
+    document.getElementById("controls-header").style.display = "none";
+    document.getElementById("quiz-container").style.display = "none";
+    document.getElementById("unit-badge").style.display = "none";
+    document.getElementById("results-container").style.display = "block";
+    
+    let totalCorrect = 0;
+    const unitScores = {};
+    units.forEach(u => unitScores[u] = 0);
+    const wrongQuestions = [];
+    
+    quizData.forEach((q) => {
+        const uAns = userAnswers[q.qIndex];
+        if (uAns === q.correct) {
+            totalCorrect++;
+            unitScores[q.unit]++;
+        } else {
+            wrongQuestions.push({ ...q, userChoice: uAns || "Not Answered" });
+        }
+    });
+
+    // Display final score
+    const finalScoreElem = document.getElementById("final-score");
+    finalScoreElem.innerText = `${totalCorrect} / ${quizData.length}`;
+
+    // Render Unit breakdown
+    const unitBreakdownElem = document.getElementById("unit-breakdown");
+    unitBreakdownElem.innerHTML = "";
+    units.forEach((u, i) => {
+        const box = document.createElement("div");
+        box.className = "unit-score-card";
+        box.innerHTML = `Unit ${i+1}<strong>${unitScores[u]}</strong>`;
+        unitBreakdownElem.appendChild(box);
+    });
+
+    // Review Wrong Answers
+    const reviewHolder = document.getElementById("review-holder");
+    reviewHolder.innerHTML = "";
+    
+    if (wrongQuestions.length === 0) {
+        reviewHolder.innerHTML = `<div class="card" style="text-align:center; color: var(--correct-text); font-weight: 600;">Congratulations! Perfect score, zero mistakes made!</div>`;
+    } else {
+        wrongQuestions.forEach((q) => {
+            const card = document.createElement("div");
+            card.className = "review-card";
+            
+            // Show review in default English
+            const userOptText = q.options.find(o => o.startsWith(q.userChoice)) || "Not Answered";
+            const correctOptText = q.options.find(o => o.startsWith(q.correct));
+            
+            card.innerHTML = `
+                <div class="review-q-title">[${q.unit}] ${q.question}</div>
+                <div class="answer-meta">
+                    Your Choice: <span class="your-ans">${userOptText}</span><br>
+                    Correct Choice: <span class="correct-ans">${correctOptText}</span>
+                </div>
+                <div class="explanation-box">
+                    <strong>Why other options are wrong / விளக்கம்:</strong>\n${q.explanation}
+                </div>`;
+            reviewHolder.appendChild(card);
+        });
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Initial render
+renderCurrentUnit();
+</script>
+
+</body>
+</html>
